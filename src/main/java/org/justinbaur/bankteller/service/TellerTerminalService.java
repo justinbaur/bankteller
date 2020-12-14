@@ -54,9 +54,13 @@ public class TellerTerminalService {
         if(terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)){
             try {
                 depositAmount = Integer.parseInt(command);
-                accountService.addBalance(depositAmount);
-                System.out.println(String.format("You have deposited %s dollars.", depositAmount));
-                displayBalance(accountService.getBalance());
+                if(depositAmount > 0){
+                    accountService.addBalance(depositAmount);
+                    System.out.println(String.format("You have deposited %s dollars.", depositAmount));
+                    displayBalance(accountService.getBalance());
+                }else{
+                    System.out.println("Invalid value - Please enter a value greater than 0.");
+                }
             } catch (InputMismatchException | NumberFormatException e) {
                 System.out.println("Invalid value - Please enter a valid integer.");
             }
