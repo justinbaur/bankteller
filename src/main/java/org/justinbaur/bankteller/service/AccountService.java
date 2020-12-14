@@ -10,11 +10,7 @@ public class AccountService {
         return balance;
     }
 
-    public void setBalance(Integer newBalance){
-        balance = newBalance;
-    }
-
     public void addBalance(Integer addAmount){
-        setBalance(getBalance() + addAmount);
+        balance = getBalance() + addAmount;
     }
 }

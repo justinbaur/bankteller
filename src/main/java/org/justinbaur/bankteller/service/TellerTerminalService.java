@@ -51,7 +51,7 @@ public class TellerTerminalService {
 
         System.out.print(depositMessage);
 
-        while(terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)){
+        if(terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)){
             try {
                 depositAmount = Integer.parseInt(command);
                 accountService.addBalance(depositAmount);
@@ -60,8 +60,6 @@ public class TellerTerminalService {
             } catch (InputMismatchException | NumberFormatException e) {
                 System.out.println("Invalid value - Please enter a valid integer.");
             }
-
-            System.out.print(depositMessage);
         }
     }
 
