@@ -9,4 +9,8 @@ public class AccountService {
     public Integer getBalance(){
         return balance;
     }
+
+    public void addBalance(Integer addAmount){
+        balance = getBalance() + addAmount;
+    }
 }
