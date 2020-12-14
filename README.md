@@ -12,7 +12,6 @@ Interactive banking terminal to help demonstrate Java concepts in a concrete exa
 ## Features
 Each feature will need to be submitted with a PR of your feature branch implementing the new functionality.  The feature will be given tasks that will touch on new concepts.
 
-
 ### Feature 1: Depositing
 #### Assignment
 Add the ability for the user to deposit money with another command
@@ -21,8 +20,6 @@ This will test working with multiple classes, data validation, language syntax, 
 #### Notes
 - We will assume there is a single account
 - The only functionatliy so far is to view the account balance
-
-
 
 ### Feature 2: Withdraw and Multi Accounts
 #### Assignment
@@ -36,8 +33,6 @@ This will test working with choosing data structures for the use case and increa
 - The data structure will need to be initialized for now in code as it does not persist to disk
 - Load a few accounts into the data structure manually as the next feature will work with creating new class/interface for that purpose
 
-
-
 ### Feature 3: Bank mangement commands and persistance
 #### Assignment
 <TEMPLATE>
@@ -46,22 +41,18 @@ This will test working with classes/interfaces and storing data on the fileystem
 #### Notes
 <TEMPLATE>
 
-
-
 ### Feature 4: 
 #### Assignment
-<TEMPLATE>
+TEMPLATE
 #### Purpose
-<TEMPLATE>
+TEMPLATE
 #### Notes
-<TEMPLATE>
-
-
+TEMPLATE
 
 ### Feature 5: 
 #### Assignment
-<TEMPLATE>
+TEMPLATE
 #### Purpose
-<TEMPLATE>
+TEMPLATE
 #### Notes
-<TEMPLATE>
+TEMPLATE
