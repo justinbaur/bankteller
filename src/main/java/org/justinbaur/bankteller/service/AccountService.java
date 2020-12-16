@@ -13,4 +13,8 @@ public class AccountService {
     public void addBalance(Integer addAmount){
         balance = getBalance() + addAmount;
     }
+
+    public void subtractBalance(Integer subtractAmount){
+        balance = getBalance() - subtractAmount;
+    }
 }
