@@ -42,8 +42,8 @@ This will test working with choosing data structures for the use case and increa
 
 - Allow for another input for an account identifier
 - The account identifier can be anything of your choosing but numeric ids are traditionally leveraged
-- The data structure will need to be initialized for now in code as it does not persist to disk
-- Load a few accounts into the data structure manually as the next feature will work with creating new class/interface for that purpose
+- The data structure will need to be hard coded with values to start the application up with data
+- Load a few accounts into the data structure manually with different values and the next feature will work with creating new class/interface for that purpose
 
 ---
 ### Feature 3: Bank mangement commands and persistance
@@ -59,7 +59,7 @@ This will test working with classes/interfaces and storing data on the fileystem
 - Use maven to include any dependencies that are leveraged
 
 ---
-### Feature 4: 
+### Feature 4: Testing
 **Assignment**
 
 TEMPLATE
@@ -73,7 +73,7 @@ TEMPLATE
 TEMPLATE
 
 ---
-### Feature 5: 
+### Feature 5: Database persistance
 **Assignment**
 
 TEMPLATE
@@ -85,3 +85,18 @@ TEMPLATE
 **Notes**
 
 TEMPLATE
+
+---
+### Feature 5: Exposing as an API
+**Assignment**
+
+TEMPLATE
+
+**Purpose**
+
+TEMPLATE
+
+**Notes**
+
+TEMPLATE
+
