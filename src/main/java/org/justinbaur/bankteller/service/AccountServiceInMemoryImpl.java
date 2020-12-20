@@ -1,20 +1,50 @@
 package org.justinbaur.bankteller.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.justinbaur.bankteller.Exceptions.AccountNotFound;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AccountServiceInMemoryImpl implements AccountService{
-    private Integer balance = 0;
+public class AccountServiceInMemoryImpl implements AccountService {
 
-    public Integer getBalance(){
-        return balance;
+    Map<Integer, Integer> accounts = new HashMap<>();
+
+    public AccountServiceInMemoryImpl(){
+        accounts.put(Integer.valueOf(1010), 0);
+        accounts.put(Integer.valueOf(2020), 20000000);
     }
 
-    public void addBalance(Integer addAmount){
-        balance = getBalance() + addAmount;
+    public Integer getBalance(Integer accountId) throws AccountNotFound {
+        if (accounts.containsKey(accountId)) {
+            return accounts.get(accountId);
+        }
+        else {
+            throw new AccountNotFound("No account found");
+        }
     }
 
-    public void subtractBalance(Integer subtractAmount){
-        balance = getBalance() - subtractAmount;
+    public void addBalance(Integer accountId, Integer addAmount) throws AccountNotFound {
+        if (accounts.containsKey(accountId)) {
+            accounts.put(accountId, getBalance(accountId) + addAmount);
+        }
+        else{
+            throw new AccountNotFound("No account found");
+        }
+    }
+
+    public void subtractBalance(Integer accountId, Integer subtractAmount) throws AccountNotFound {
+        if (accounts.containsKey(accountId)) {
+            accounts.put(accountId, getBalance(accountId) - subtractAmount);
+        }
+        else{
+            throw new AccountNotFound("No account found");
+        }
+    }
+
+    @Override
+    public Boolean checkAccount(Integer accountId) {
+        return accounts.containsKey(accountId);
     }
 }

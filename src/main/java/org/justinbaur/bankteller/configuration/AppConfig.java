@@ -15,8 +15,4 @@ public class AppConfig {
         return new Scanner(System.in);
     }
 
-    @Bean
-    public AccountService accountService(){
-        return new AccountServiceInMemoryImpl();
-    }
 }
