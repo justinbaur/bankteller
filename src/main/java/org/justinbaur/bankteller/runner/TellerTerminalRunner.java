@@ -5,11 +5,13 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-import org.justinbaur.bankteller.Exceptions.AccountNotFound;
+import org.justinbaur.bankteller.exceptions.AccountNotFound;
 import org.justinbaur.bankteller.service.AccountService;
+import org.justinbaur.bankteller.service.Time;
 import org.justinbaur.bankteller.util.Commands;
 
 @Component
@@ -24,13 +26,19 @@ public class TellerTerminalRunner implements ApplicationRunner {
     Integer accountId = -1;
     String command = null;
 
+    @Value("${message.welcome}")
+    String welcomeMessage;
+
+    Time myTime = Time.getInstance();
+
     @Override
     public void run(ApplicationArguments args) throws Exception {
+        System.out.println(myTime.printTime() + " - Starting ternimal session");
         activateTerminalSession();
     }
 
     public void activateTerminalSession() {
-        System.out.println("\nWelcome to the bank.");
+        System.out.println(welcomeMessage);
 
         while(true){
             while(accountId == -1){
