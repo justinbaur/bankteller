@@ -66,15 +66,20 @@ This will test working with classes/interfaces and storing data on the fileystem
 ### Feature 4: Testing
 **Assignment**
 
-TEMPLATE
+- Create a test suite for the account service impl
+  - Test cases for getBalance
+  - Test cases for addBalance
+  - Test cases for subtractBalance
+  - Test cases for checkAccount
+- Mock the Time object so it does not get created in the account service tests
 
 **Purpose**
 
-TEMPLATE
+Start with the basics of testing happy path and sad path for the services you write.  Utilize different libraries and frameworks for testing Java applications.  Understanding the structure of where Java tests should be located and executed.
 
 **Notes**
-
-TEMPLATE
+- Use mockito for mocking other classes such as the Time class
+- Use junit jupiter / junit 5 for assertions
 
 ---
 ### Feature 5: Database persistance
@@ -91,19 +96,6 @@ TEMPLATE
 TEMPLATE
 
 ---
-### Feature 5: Exposing as an API
-**Assignment**
-
-TEMPLATE
-
-**Purpose**
-
-TEMPLATE
-
-**Notes**
-
-TEMPLATE
-
 ## Object Oriented Design Patterns
 To better help visualize the documented design patterns we want to incorporate trival examples of each within the bankteller application
 
