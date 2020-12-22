@@ -2,8 +2,6 @@ package org.justinbaur.bankteller.configuration;
 
 import java.util.Scanner;
 
-import org.justinbaur.bankteller.service.AccountService;
-import org.justinbaur.bankteller.service.AccountServiceInMemoryImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

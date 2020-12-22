@@ -1,6 +1,6 @@
 package org.justinbaur.bankteller.service;
 
-import org.justinbaur.bankteller.Exceptions.AccountNotFound;
+import org.justinbaur.bankteller.exceptions.AccountNotFound;
 
 public interface AccountService {
 

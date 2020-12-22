@@ -3,7 +3,7 @@ package org.justinbaur.bankteller.service;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.justinbaur.bankteller.Exceptions.AccountNotFound;
+import org.justinbaur.bankteller.exceptions.AccountNotFound;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,7 +11,10 @@ public class AccountServiceInMemoryImpl implements AccountService {
 
     Map<Integer, Integer> accounts = new HashMap<>();
 
+    Time myTime = Time.getInstance();
+
     public AccountServiceInMemoryImpl(){
+        System.out.println(myTime.printTime() + " - Setting up in memory bank accounts");
         accounts.put(Integer.valueOf(1010), 0);
         accounts.put(Integer.valueOf(2020), 20000000);
     }

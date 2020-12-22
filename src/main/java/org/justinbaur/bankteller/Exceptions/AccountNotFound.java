@@ -1,4 +1,4 @@
-package org.justinbaur.bankteller.Exceptions;
+package org.justinbaur.bankteller.exceptions;
 
 public class AccountNotFound extends Exception{
 
