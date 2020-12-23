@@ -18,23 +18,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class JsonFileHandler {
    
-   @Bean
    public static void writeJSON(Account account) throws JsonGenerationException, JsonMappingException, IOException{
       ObjectMapper mapper = new ObjectMapper();	
       mapper.writeValue(new File("src\\main\\resources\\accounts.json"), account);
    }
 
-   @Bean
    public static Account readJSON() throws JsonParseException, JsonMappingException, IOException{
       ObjectMapper mapper = new ObjectMapper();
       Account account = mapper.readValue(new File("src\\main\\resources\\accounts.json"), Account.class);
       return account;
    }
 
-   @Bean
    public static List<Account> readJSON_Array() throws JsonParseException, JsonMappingException, IOException{
-    ObjectMapper mapper = new ObjectMapper();
-    List<Account> account = mapper.readValue(new File("src\\main\\resources\\accounts.json"), new TypeReference<List<Account>>() {});
-    return account;
- }
+      ObjectMapper mapper = new ObjectMapper();
+      List<Account> account = mapper.readValue(new File("src\\main\\resources\\accounts.json"), new TypeReference<List<Account>>() {});
+      return account;
+   }
 }
