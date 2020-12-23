@@ -1,15 +1,19 @@
 package org.justinbaur.bankteller.runner;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-import org.justinbaur.bankteller.Exceptions.AccountNotFound;
+import org.justinbaur.bankteller.exceptions.AccountNotFound;
 import org.justinbaur.bankteller.service.AccountService;
+import org.justinbaur.bankteller.service.AccountServiceInMemoryImpl;
 import org.justinbaur.bankteller.util.Commands;
 
 @Component
@@ -42,8 +46,29 @@ public class TellerTerminalRunner implements ApplicationRunner {
 
     private void activeAccountSession(){
         listMenu();
-        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)) {
+
+        
+        List<String> adminCommandList = Arrays.asList(Commands.CREATE, Commands.DELETE, Commands.LOGOUT, Commands.EXIT);
+        List<String> userCommandList = Arrays.asList(Commands.BALANCE, Commands.DEPOSIT, Commands.WITHDRAW, Commands.LOGOUT, Commands.EXIT);
+        List<String> currentCommandList = userCommandList;
+
+        if(accountId == 0){
+            currentCommandList = adminCommandList;
+        }
+
+        while (terminalnput.hasNext()) {
+            command = terminalnput.nextLine();
+            if(!currentCommandList.contains(command)){
+                System.out.println("Invalid command.");
+                continue;
+            }
             switch (command) {
+                case Commands.CREATE:
+                    createAccount();
+                    break;
+                case Commands.DELETE:
+                    deleteAccount();
+                    break;
                 case Commands.BALANCE:
                     displayBalance();
                     break;
@@ -56,6 +81,8 @@ public class TellerTerminalRunner implements ApplicationRunner {
                 case Commands.LOGOUT:
                     accountId = -1;
                     return;
+                case Commands.EXIT:
+                    terminateProgram();
                 default:
                     System.out.println("Invalid command.");
                     break;
@@ -65,11 +92,70 @@ public class TellerTerminalRunner implements ApplicationRunner {
         }
     }
 
+    private void createAccount(){
+        //String message = "Please enter a starting balance for the account.";
+        accountService.createAccount(0);
+    }
+
+    private void deleteAccount(){
+        String message = "\nPlease enter the ID of the account you wish to delete or type exit to return.\n->";
+        Integer id = -1;
+
+        System.out.print(message);
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)) {
+            try {
+                id = Integer.parseInt(command);
+                if (id == 0) {
+                    System.out.println("You can not delete this account.");
+                } else if (id > 0){
+                    accountService.deleteAccount(id);
+                    return;
+                } else {
+                    System.out.println("Invalid value - Please enter a value greater than 0.");
+                }
+            } catch (AccountNotFound e) {
+                System.err.println("Could not find account number: " + id);
+            } catch (InputMismatchException | NumberFormatException e) {
+                System.out.println("Invalid value - Please enter a valid integer.");
+            }
+            System.out.print(message);
+        }
+    }
+
     private void login(){
-        String loginMessage = "\nPlease enter a user ID to login, or type exit to terminate the application.\n->";
+        accountId = -1;
+
+        String loginMessage = "\nAre you an admin or a user?\n->";
 
         System.out.print(loginMessage);
-        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT) && accountId == -1) {
+        outerloop:
+        while(terminalnput.hasNext() && accountId == -1){
+            command = terminalnput.nextLine();
+            switch (command) {
+                case Commands.ADMIN:
+                    accountId = 0;
+                    return;
+                case Commands.USER:
+                    break outerloop;
+                case Commands.EXIT:
+                    terminateProgram();
+                default:
+                    System.out.println("Invalid command.");
+                    break;
+            }
+            System.out.print(loginMessage);
+        }
+
+        System.out.println(accountId);
+        
+        loginMessage = "\nPlease enter a user ID to login, or type exit to terminate the application.\n->";
+
+        System.out.print(loginMessage);
+
+        while (terminalnput.hasNext() && accountId == -1) {
+            command = terminalnput.nextLine();
+
+            if(Commands.EXIT.equals(command)) { terminateProgram(); }
             try {
                 accountId = Integer.parseInt(command);
                 Boolean isAccount = accountService.checkAccount(accountId);
@@ -156,11 +242,22 @@ public class TellerTerminalRunner implements ApplicationRunner {
 
     private void listMenu() {
         System.out.println("\nPlease follow the list of commands:");
-        System.out.println("  balance - to check your current balance.");
-        System.out.println("  deposit - to place money into your account.");
-        System.out.println("  withdraw - to take money out of your account.");
+        if(accountId == 0){ //admin commands
+            System.out.println("  create - to create a new account.");
+            System.out.println("  delete - to delete an existing account.");
+        }
+        if(accountId >= 1){ //standard user commands
+            System.out.println("  balance - to check your current balance.");
+            System.out.println("  deposit - to place money into your account.");
+            System.out.println("  withdraw - to take money out of your account.");
+        } 
         System.out.println("  logout - to log out of the current account.");
         System.out.println("  exit - to shut down your session.");
         System.out.print("->");
+    }
+
+    private void terminateProgram(){
+        System.out.println("\nExiting the application...");
+        System.exit(0);
     }
 }
