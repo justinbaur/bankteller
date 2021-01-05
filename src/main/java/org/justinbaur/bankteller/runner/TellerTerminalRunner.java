@@ -1,7 +1,6 @@
 package org.justinbaur.bankteller.runner;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.InputMismatchException;
 import java.util.List;
@@ -12,8 +11,9 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import org.justinbaur.bankteller.exceptions.AccountNotFound;
+import org.justinbaur.bankteller.exceptions.UpdateException;
 import org.justinbaur.bankteller.service.AccountService;
-import org.justinbaur.bankteller.service.AccountServiceInMemoryImpl;
+import org.justinbaur.bankteller.service.AdminService;
 import org.justinbaur.bankteller.util.Commands;
 
 @Component
@@ -24,6 +24,9 @@ public class TellerTerminalRunner implements ApplicationRunner {
 
     @Autowired
     AccountService accountService;
+
+    @Autowired
+    AdminService adminService;
 
     Integer accountId = -1;
     String command = null;
@@ -36,29 +39,29 @@ public class TellerTerminalRunner implements ApplicationRunner {
     public void activateTerminalSession() {
         System.out.println("\nWelcome to the bank.");
 
-        while(true){
-            while(accountId == -1){
+        while (true) {
+            while (accountId == -1) {
                 login();
             }
             activeAccountSession();
         }
     }
 
-    private void activeAccountSession(){
+    private void activeAccountSession() {
         listMenu();
 
-        
         List<String> adminCommandList = Arrays.asList(Commands.CREATE, Commands.DELETE, Commands.LOGOUT, Commands.EXIT);
-        List<String> userCommandList = Arrays.asList(Commands.BALANCE, Commands.DEPOSIT, Commands.WITHDRAW, Commands.LOGOUT, Commands.EXIT);
+        List<String> userCommandList = Arrays.asList(Commands.BALANCE, Commands.DEPOSIT, Commands.WITHDRAW,
+                Commands.LOGOUT, Commands.EXIT);
         List<String> currentCommandList = userCommandList;
 
-        if(accountId == 0){
+        if (accountId == 0) {
             currentCommandList = adminCommandList;
         }
 
         while (terminalnput.hasNext()) {
             command = terminalnput.nextLine();
-            if(!currentCommandList.contains(command)){
+            if (!currentCommandList.contains(command)) {
                 System.out.println("Invalid command.");
                 continue;
             }
@@ -92,12 +95,11 @@ public class TellerTerminalRunner implements ApplicationRunner {
         }
     }
 
-    private void createAccount(){
-        //String message = "Please enter a starting balance for the account.";
-        accountService.createAccount(0);
+    private void createAccount() {
+        adminService.createAccount(0);
     }
 
-    private void deleteAccount(){
+    private void deleteAccount() {
         String message = "\nPlease enter the ID of the account you wish to delete or type exit to return.\n->";
         Integer id = -1;
 
@@ -107,8 +109,8 @@ public class TellerTerminalRunner implements ApplicationRunner {
                 id = Integer.parseInt(command);
                 if (id == 0) {
                     System.out.println("You can not delete this account.");
-                } else if (id > 0){
-                    accountService.deleteAccount(id);
+                } else if (id > 0) {
+                    adminService.deleteAccount(id);
                     return;
                 } else {
                     System.out.println("Invalid value - Please enter a value greater than 0.");
@@ -122,14 +124,13 @@ public class TellerTerminalRunner implements ApplicationRunner {
         }
     }
 
-    private void login(){
+    private void login() {
         accountId = -1;
 
         String loginMessage = "\nAre you an admin or a user?\n->";
 
         System.out.print(loginMessage);
-        outerloop:
-        while(terminalnput.hasNext() && accountId == -1){
+        outerloop: while (terminalnput.hasNext() && accountId == -1) {
             command = terminalnput.nextLine();
             switch (command) {
                 case Commands.ADMIN:
@@ -147,7 +148,7 @@ public class TellerTerminalRunner implements ApplicationRunner {
         }
 
         System.out.println(accountId);
-        
+
         loginMessage = "\nPlease enter a user ID to login, or type exit to terminate the application.\n->";
 
         System.out.print(loginMessage);
@@ -155,16 +156,17 @@ public class TellerTerminalRunner implements ApplicationRunner {
         while (terminalnput.hasNext() && accountId == -1) {
             command = terminalnput.nextLine();
 
-            if(Commands.EXIT.equals(command)) { terminateProgram(); }
+            if (Commands.EXIT.equals(command)) {
+                terminateProgram();
+            }
             try {
                 accountId = Integer.parseInt(command);
                 Boolean isAccount = accountService.checkAccount(accountId);
-                if (isAccount == false){
+                if (isAccount == false) {
                     accountId = -1;
                     System.out.println("This is not a valid account id, please try again.");
                     System.out.print("->");
-                }
-                else {
+                } else {
                     System.out.println("Welcome, " + accountId);
                     break;
                 }
@@ -180,7 +182,7 @@ public class TellerTerminalRunner implements ApplicationRunner {
             Integer balance = accountService.getBalance(accountId);
             DecimalFormat df = new DecimalFormat("###,###,###");
             System.out.println(String.format("Your current balance is: $%s.", df.format(balance)));
-        } catch (AccountNotFound e){
+        } catch (AccountNotFound e) {
             System.err.println("Could not find account number: " + accountId);
         }
     }
@@ -192,7 +194,11 @@ public class TellerTerminalRunner implements ApplicationRunner {
             try {
                 Integer depositAmount = Integer.parseInt(command);
                 if (depositAmount > 0) {
-                    accountService.addBalance(accountId, depositAmount);
+                    try {
+                        accountService.addBalance(accountId, depositAmount);
+                    } catch (UpdateException e) {
+                        System.out.println("Failed to withdraw $" + depositAmount);
+                    }
                     System.out.println(String.format("You have deposited %s dollars.", depositAmount));
                     displayBalance();
                 } else {
@@ -207,12 +213,12 @@ public class TellerTerminalRunner implements ApplicationRunner {
     }
 
     private void withdraw() {
-        try{ 
+        try {
             if (accountService.getBalance(accountId) <= 0) {
                 System.out.println("Insufficient account balance to withdraw.");
                 return;
             }
-        } catch(AccountNotFound e){
+        } catch (AccountNotFound e) {
             System.err.println("Could not find account number: " + accountId);
         }
 
@@ -223,7 +229,11 @@ public class TellerTerminalRunner implements ApplicationRunner {
                 Integer withdrawAmount = Integer.parseInt(command);
                 if (withdrawAmount > 0) {
                     if (accountService.getBalance(accountId) >= withdrawAmount) {
-                        accountService.subtractBalance(accountId, withdrawAmount);
+                        try {
+                            accountService.subtractBalance(accountId, withdrawAmount);
+                        } catch (UpdateException e) {
+                            System.out.println("Failed to withdraw $" + withdrawAmount);
+                        }
                         System.out.println(String.format("You have withdrawn %s dollars.", withdrawAmount));
                         displayBalance();
                     } else {
@@ -242,21 +252,21 @@ public class TellerTerminalRunner implements ApplicationRunner {
 
     private void listMenu() {
         System.out.println("\nPlease follow the list of commands:");
-        if(accountId == 0){ //admin commands
+        if (accountId == 0) { // admin commands
             System.out.println("  create - to create a new account.");
             System.out.println("  delete - to delete an existing account.");
         }
-        if(accountId >= 1){ //standard user commands
+        if (accountId >= 1) { // user commands
             System.out.println("  balance - to check your current balance.");
             System.out.println("  deposit - to place money into your account.");
             System.out.println("  withdraw - to take money out of your account.");
-        } 
+        }
         System.out.println("  logout - to log out of the current account.");
         System.out.println("  exit - to shut down your session.");
         System.out.print("->");
     }
 
-    private void terminateProgram(){
+    private void terminateProgram() {
         System.out.println("\nExiting the application...");
         System.exit(0);
     }

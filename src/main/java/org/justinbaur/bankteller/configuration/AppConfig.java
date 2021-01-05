@@ -2,8 +2,9 @@ package org.justinbaur.bankteller.configuration;
 
 import java.util.Scanner;
 
-import org.justinbaur.bankteller.service.AccountService;
-import org.justinbaur.bankteller.service.AccountServiceInMemoryImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.justinbaur.bankteller.service.JsonFileHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,4 +16,13 @@ public class AppConfig {
         return new Scanner(System.in);
     }
 
+    @Bean
+    public ObjectMapper mapper() {
+        return new ObjectMapper();
+    }
+
+    @Bean
+    public JsonFileHandler handler() {
+        return new JsonFileHandler();
+    }
 }

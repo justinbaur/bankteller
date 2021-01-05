@@ -1,28 +1,35 @@
 package org.justinbaur.bankteller.domain;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
-
 public class Account {
 
-    public Integer id;
-    public Integer balance;
+    private Integer id;
+    private Integer balance;
 
-    public Account(Integer id, Integer balance){
+    public Account() {
+    }
+
+    public Account(Integer id, Integer balance) {
         this.id = id;
         this.balance = balance;
     }
 
-    public Integer getId(){
-        return this.id;
+    public Integer getId() {
+        return id;
     }
 
-    public Integer getBalance(){
-        return this.balance;
+    public Integer getBalance() {
+        return balance;
     }
 
-    public String toString(){
-        return "Account [ id: "+id+", balance: "+ balance+ " ]";
-     }	
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public void setBalance(Integer balance) {
+        this.balance = balance;
+    }
+
+    public String toString() {
+        return "Account [ id: " + id + ", balance: " + balance + " ]";
+    }
 }
