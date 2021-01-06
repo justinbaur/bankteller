@@ -21,6 +21,12 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     JsonFileHandler handler;
 
+    Time myTime = Time.getInstance();
+
+    public AccountServiceImpl(){
+        System.out.println(myTime.printTime() + " - Setting up in memory bank accounts");
+    }
+
     public Integer getBalance(Integer accountId) throws AccountNotFound {
         if (handler.getAccountsMap().containsKey(accountId)) {
             return handler.getAccountsMap().get(accountId).getBalance();

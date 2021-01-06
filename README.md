@@ -49,7 +49,8 @@ This will test working with choosing data structures for the use case and increa
 ### Feature 3: Bank mangement commands and persistance
 **Assignment**
 
-TEMPLATE
+- Save accounts to a json file so they can be presisted on next runtime of the terminal
+- Enable the ability to create and delete accounts as an admin
 
 **Purpose**
 
@@ -57,20 +58,28 @@ This will test working with classes/interfaces and storing data on the fileystem
 
 **Notes**
 - Use maven to include any dependencies that are leveraged
+- Use `.json` or `.csv` file types to save state (Leverage the Jackson library to work with json)
+- Can pre-load data to help work with loading and unloading the json objects from the file
+- Create a new interface for working with accounts (Creating/deleting) and implement it 
 
 ---
 ### Feature 4: Testing
 **Assignment**
 
-TEMPLATE
+- Create a test suite for the account service impl
+  - Test cases for getBalance
+  - Test cases for addBalance
+  - Test cases for subtractBalance
+  - Test cases for checkAccount
+- Mock the Time object so it does not get created in the account service tests
 
 **Purpose**
 
-TEMPLATE
+Start with the basics of testing happy path and sad path for the services you write.  Utilize different libraries and frameworks for testing Java applications.  Understanding the structure of where Java tests should be located and executed.
 
 **Notes**
-
-TEMPLATE
+- Use mockito for mocking other classes such as the Time class
+- Use junit jupiter / junit 5 for assertions
 
 ---
 ### Feature 5: Database persistance
@@ -87,16 +96,23 @@ TEMPLATE
 TEMPLATE
 
 ---
-### Feature 5: Exposing as an API
-**Assignment**
+## Object Oriented Design Patterns
+To better help visualize the documented design patterns we want to incorporate trival examples of each within the bankteller application
 
-TEMPLATE
+Some of them may not make a lot of sense but will be called out as such to help demonstrate the patterns.
 
-**Purpose**
+---
+### Pattern: Singleton
+[Definition of singleton pattern](https://www.oodesign.com/singleton-pattern.html)
 
-TEMPLATE
+Let's pretend that our Time object in the sevice package is very resource heavy and is thread-safe.  We will set it up with a private constructor and make it only visible through an instance method.  This should create a new object if one does not exist and nothing otherwise.  Let's also put some print statements in there to visualize the object creation and note it should only print the `creating` statement once per application run.
+
+Now to utilze it we will get an instance in both the `TellerTerminalRunner` and `AccountServiceInMemoryImpl` classes.  Both will utilize the same `Time` object under the covers to print the current time.
 
 **Notes**
+Spring can handle singletons by utilizing the `@Bean` annotation in the configuration.  This by default will create a singleton of that object.
 
-TEMPLATE
 
+---
+### Pattern: Prototype
+[Definition of prototype pattern](https://www.oodesign.com/prototype-pattern.html)
