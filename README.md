@@ -66,12 +66,12 @@ This will test working with classes/interfaces and storing data on the fileystem
 ### Feature 4: Testing
 **Assignment**
 
-- Create a test suite for the account service impl
+- Create a test suite for the `AccountServiceImpl` class, brainstorm a list of cases that should be tested to cover the different branches of logic in the class
   - Test cases for getBalance
   - Test cases for addBalance
   - Test cases for subtractBalance
   - Test cases for checkAccount
-- Mock the Time object so it does not get created in the account service tests
+- Mock the JsonFileHandler object so it does not get created in the account service tests but allows us to control what is being passed to and from it
 
 **Purpose**
 
