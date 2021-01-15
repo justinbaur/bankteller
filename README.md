@@ -73,6 +73,8 @@ This will test working with classes/interfaces and storing data on the fileystem
   - Test cases for checkAccount
 - Mock the JsonFileHandler object so it does not get created in the account service tests but allows us to control what is being passed to and from it
 
+- Evaluate tests for `AdminServiceImpl` class
+
 **Purpose**
 
 Start with the basics of testing happy path and sad path for the services you write.  Utilize different libraries and frameworks for testing Java applications.  Understanding the structure of where Java tests should be located and executed.
