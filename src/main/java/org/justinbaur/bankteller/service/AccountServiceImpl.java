@@ -1,22 +1,19 @@
 package org.justinbaur.bankteller.service;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-
 import org.justinbaur.bankteller.domain.Account;
 import org.justinbaur.bankteller.exceptions.AccountNotFound;
 import org.justinbaur.bankteller.exceptions.JsonReadException;
 import org.justinbaur.bankteller.exceptions.JsonWriteException;
 import org.justinbaur.bankteller.exceptions.UpdateException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AccountServiceImpl implements AccountService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     @Autowired
     JsonFileHandler handler;
@@ -24,7 +21,7 @@ public class AccountServiceImpl implements AccountService {
     Time myTime = Time.getInstance();
 
     public AccountServiceImpl(){
-        System.out.println(myTime.printTime() + " - Setting up in memory bank accounts");
+        LOG.info(myTime.printTime() + " - Setting up in memory bank accounts");
     }
 
     public Integer getBalance(Integer accountId) throws AccountNotFound {
@@ -42,9 +39,9 @@ public class AccountServiceImpl implements AccountService {
             try {
                 handler.updateAccount(acct);
             } catch (JsonReadException e) {
-                System.err.println("Failed to read from file:" + e.getLocalizedMessage());
+                LOG.error("Failed to read from file:" + e.getLocalizedMessage());
             } catch (JsonWriteException e) {
-                System.err.println("Failed to write file:" + e.getLocalizedMessage());
+                LOG.error("Failed to write file:" + e.getLocalizedMessage());
             }
         } else {
             throw new AccountNotFound("No account found");
@@ -58,9 +55,9 @@ public class AccountServiceImpl implements AccountService {
             try {
                 handler.updateAccount(acct);
             } catch (JsonReadException e) {
-                System.err.println("Failed to read from file:" + e.getLocalizedMessage());
+                LOG.error("Failed to read from file:" + e.getLocalizedMessage());
             } catch (JsonWriteException e) {
-                System.err.println("Failed to write file:" + e.getLocalizedMessage());
+                LOG.error("Failed to write file:" + e.getLocalizedMessage());
             }
         } else {
             throw new AccountNotFound("No account found");
