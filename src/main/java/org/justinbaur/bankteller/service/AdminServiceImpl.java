@@ -1,59 +1,52 @@
 package org.justinbaur.bankteller.service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-
 import org.justinbaur.bankteller.domain.Account;
 import org.justinbaur.bankteller.exceptions.JsonReadException;
 import org.justinbaur.bankteller.exceptions.JsonWriteException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AdminServiceImpl implements AdminService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AdminServiceImpl.class);
+
     @Autowired
     JsonFileHandler handler;
 
     public void createAccount(Integer balance) {
-        Boolean accountCreated = false;
-        Integer currentId = 1;
+        Integer idRangeStart = 1;
         Integer accountLimit = 10;
 
-        System.out.println(String.format(
-                "\nAttempting to create a new account.. Checking for available IDs between 1 and %s ", accountLimit));
-        while (!accountCreated && currentId <= accountLimit) { // find the next unused ID
-            try {
-                if (handler.getAccountsMap().containsKey(currentId)) {
-                    currentId++;
-                    if (currentId > accountLimit) {
-                        System.out.println("No free IDs found.");
-                    }
-                    continue;
-                }
+        LOG.info("\nAttempting to create a new account.. Checking for available IDs between {} and {}.", idRangeStart, accountLimit);
 
-                Account acct = new Account(currentId, balance);
+        Integer availableId = findAvailableAccountID(idRangeStart, accountLimit);
+
+        try {
+            if (availableId > 0){
+                Account acct = new Account(availableId, balance);
+
                 List<Account> accountsList = handler.readAccounts();
                 accountsList.add(acct);
                 handler.writeAccounts(accountsList);
-
-                accountCreated = true;
-                System.out.println(String.format("Account with ID %s has been created.", currentId));
-                return;
-            } catch (JsonReadException e) {
-                System.err.println("Failed to read from file:" + e.getLocalizedMessage());
-            } catch (JsonWriteException e) {
-                System.err.println("Failed to write file:" + e.getLocalizedMessage());
+        
+                //accountCreated = true;
+                LOG.info("Account with ID {}} has been created.", availableId);
+            } else {
+                LOG.warn("Unable to create account - No available ID in specified range.");
             }
-            currentId++;
+        } catch (JsonReadException e) {
+            LOG.error("Failed to read from file:" + e.getLocalizedMessage());
+        } catch (JsonWriteException e) {
+            LOG.error("Failed to write file:" + e.getLocalizedMessage());
         }
-        System.out.println("Unable to create account.");
-
+        
     }
 
     public void deleteAccount(Integer id) {
@@ -67,14 +60,25 @@ public class AdminServiceImpl implements AdminService {
             }
             try {
                 handler.writeAccounts(accountsList);
-                System.out.println(String.format("Account with ID %s has been deleted.", id));
+                LOG.info("Account with ID {} has been deleted.", id);
             } catch (JsonWriteException e) {
-                System.err.println("Failed to write file:" + e.getLocalizedMessage());
+                LOG.error("Failed to write file:" + e.getLocalizedMessage());
             }
         } else {
-            System.out.println(String.format("Account with ID %s not found.", id));
+            LOG.warn("Account with ID %s not found.", id);
         }
-
     }
 
+    public Integer findAvailableAccountID(Integer idRangeMin, Integer idRangeMax) {
+
+        Integer currentId = idRangeMin;
+
+        while(currentId <= idRangeMax){
+            if (!handler.getAccountsMap().containsKey(currentId)) {
+                return currentId;
+            }
+            currentId++;
+        }
+        return -1;
+    }
 }

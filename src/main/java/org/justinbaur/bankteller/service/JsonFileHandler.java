@@ -9,7 +9,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.*;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,11 +16,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.justinbaur.bankteller.domain.Account;
 import org.justinbaur.bankteller.exceptions.JsonReadException;
 import org.justinbaur.bankteller.exceptions.JsonWriteException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class JsonFileHandler {
+
+   private static final Logger LOG = LoggerFactory.getLogger(JsonFileHandler.class);
 
    @Autowired
    ObjectMapper mapper;
@@ -39,7 +42,7 @@ public class JsonFileHandler {
             map.put(acct.getId(), acct);
          }
       } catch (JsonReadException e) {
-         System.err.println("Failed to get accounts map.");
+         LOG.error("Failed to get accounts map.");
       }
 
       return map;
@@ -50,7 +53,7 @@ public class JsonFileHandler {
          sortAccounts(accounts);
          mapper.writeValue(new File("src\\main\\resources\\accounts.json"), accounts);
       } catch (IOException e) {
-         System.err.println("Failed to write file:" + e.getLocalizedMessage());
+         LOG.error("Failed to write file:" + e.getLocalizedMessage());
          throw new JsonWriteException("Failed to write account.");
       }
    }
@@ -62,7 +65,7 @@ public class JsonFileHandler {
          sortAccounts(accounts);
          return accounts;
       } catch (IOException e) {
-         System.err.println("Failed to read from file:" + e.getLocalizedMessage());
+         LOG.error("Failed to read from file:" + e.getLocalizedMessage());
          throw new JsonReadException("Failed to read account.");
       }
    }
