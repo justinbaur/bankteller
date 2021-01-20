@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
 public class AdminServiceTests {
-	private static final Logger LOG = LoggerFactory.getLogger(AccountServiceTests.class);
+	private static final Logger LOG = LoggerFactory.getLogger(AdminServiceTests.class);
 
 	@Mock
 	JsonFileHandler handler;

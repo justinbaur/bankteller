@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 public class Time {
     private static Time time = null;
 
-    private static final Logger LOG = LoggerFactory.getLogger(JsonFileHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Time.class);
 
     private Time(){
 
