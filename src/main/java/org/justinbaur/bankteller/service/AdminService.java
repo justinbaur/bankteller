@@ -6,5 +6,6 @@ public interface AdminService {
 
     public void createAccount(Integer balance);
     public void deleteAccount(Integer accountId) throws AccountNotFound;
+    public void printReportByState(String state);
 
 }

@@ -87,15 +87,26 @@ Start with the basics of testing happy path and sad path for the services you wr
 ### Feature 5: Database persistance
 **Assignment**
 
-TEMPLATE
+Create a new account service and admin service implementation that utilizes a database instead of a json file.  These implementations should act on the single account object for each operation and not require the application to store the entire dataset in memory any longer.
+
+Implement all the existing operations but store the information in one collection named accounts within the cloud mongo database.  You will use the built in spring data operations (findById/delete/save) to implement the existing methods using the `AccountRepository`
+
+Create a custom query to allow and admin to print out a list of accounts by the state.  Utilize the `MongoClient` to work with the mongo database objects directly to obtain your result.
+
+Query reference guide- https://docs.mongodb.com/manual/tutorial/query-documents
+Mongo spring data ref- https://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#reference
 
 **Purpose**
 
-TEMPLATE
+Working with real world ways to persist data.
 
 **Notes**
+The account POJO has been beefied up so you will need to account for more user input from the admin console.
 
-TEMPLATE
+---
+
+Future notes
+- XML to JSON and merge
 
 ---
 ## Object Oriented Design Patterns

@@ -81,4 +81,9 @@ public class AdminServiceImpl implements AdminService {
         }
         return -1;
     }
+
+    @Override
+    public void printReportByState(String state) {
+        
+    }
 }
