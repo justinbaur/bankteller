@@ -1,0 +1,17 @@
+message: 
+  welcome: Welcome to the bank.
+
+mongodb:
+  secret: /run/secrets/bankteller-mongodb/auth
+
+logging:
+  level:
+    org.mongodb: WARN
+    org.springframework: INFO
+
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://${mongodb.username}:${mongodb.password}@cluster0.gidim.mongodb.net/bankteller?retryWrites=true&w=majority
+
