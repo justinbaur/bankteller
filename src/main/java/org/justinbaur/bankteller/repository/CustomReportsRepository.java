@@ -2,8 +2,8 @@ package org.justinbaur.bankteller.repository;
 
 import java.util.List;
 
-import org.justinbaur.bankteller.domain.Account;
+import org.justinbaur.bankteller.domain.Profile;
 
 public interface CustomReportsRepository {
-    List<Account> accountsByState(String state);
+    List<Profile> accountsByState(String state);
 }

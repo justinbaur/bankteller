@@ -4,6 +4,7 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +12,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import org.justinbaur.bankteller.domain.Account;
+import org.justinbaur.bankteller.domain.Address;
 import org.justinbaur.bankteller.exceptions.AccountNotFound;
+import org.justinbaur.bankteller.exceptions.ProfileNotFound;
 import org.justinbaur.bankteller.exceptions.UpdateException;
-import org.justinbaur.bankteller.service.AccountService;
+import org.justinbaur.bankteller.service.UserProfileService;
 import org.justinbaur.bankteller.service.AdminService;
 import org.justinbaur.bankteller.service.Time;
+import org.justinbaur.bankteller.util.AccountTypes;
 import org.justinbaur.bankteller.util.Commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,12 +34,11 @@ public class TellerTerminalRunner implements ApplicationRunner {
     Scanner terminalnput;
 
     @Autowired
-    AccountService accountService;
+    UserProfileService profileService;
 
     @Autowired
     AdminService adminService;
 
-    Integer accountId = -1;
     String command = null;
 
     @Value("${message.welcome}")
@@ -52,83 +56,194 @@ public class TellerTerminalRunner implements ApplicationRunner {
         LOG.info(welcomeMessage);
 
         while (true) {
-            while (accountId == -1) {
-                login();
+            String currentId = null;
+            while (currentId == null) {
+                currentId = login();
             }
-            activeAccountSession();
+            activeProfileSession(currentId);
         }
     }
 
-    private void activeAccountSession() {
-        listMenu();
+    private void activeProfileSession(String currentId) {
+        listMenu(currentId);
 
-        List<String> adminCommandList = Arrays.asList(Commands.CREATE, Commands.DELETE, Commands.LOGOUT, Commands.EXIT);
+        List<String> adminCommandList = Arrays.asList(Commands.CREATE_PROFILE, Commands.CREATE_ACCOUNT,
+                Commands.DELETE_PROFILE, Commands.DELETE_ACCOUNT, Commands.REPORTS_BY_STATE, Commands.LOGOUT,
+                Commands.EXIT);
         List<String> userCommandList = Arrays.asList(Commands.BALANCE, Commands.DEPOSIT, Commands.WITHDRAW,
                 Commands.LOGOUT, Commands.EXIT);
         List<String> currentCommandList = userCommandList;
 
-        if (accountId == 0) {
-            currentCommandList = adminCommandList;
+        try {
+            if (profileService.getProfile(currentId).getIsAdmin()) {
+                currentCommandList = adminCommandList;
+            }
+        } catch (ProfileNotFound e) {
+            LOG.warn("Could not find profile ID: {}", currentId);
         }
 
-        while (terminalnput.hasNext()) {
+        while (terminalnput.hasNext() && currentId != null) {
             command = terminalnput.nextLine();
             if (!currentCommandList.contains(command)) {
                 LOG.warn("Invalid command.");
                 continue;
             }
             switch (command) {
-                case Commands.CREATE:
+                case Commands.CREATE_PROFILE:
+                    createProfile();
+                    break;
+                case Commands.DELETE_PROFILE:
+                    deleteProfile();
+                    break;
+                case Commands.CREATE_ACCOUNT:
                     createAccount();
                     break;
-                case Commands.DELETE:
+                case Commands.DELETE_ACCOUNT:
                     deleteAccount();
                     break;
+                case Commands.REPORTS_BY_STATE:
+                    reportsByState();
+                    break;
                 case Commands.BALANCE:
-                    displayBalance();
+                    displayBalance(currentId);
                     break;
                 case Commands.DEPOSIT:
-                    deposit();
+                    deposit(currentId);
                     break;
                 case Commands.WITHDRAW:
-                    withdraw();
+                    withdraw(currentId);
                     break;
                 case Commands.LOGOUT:
-                    accountId = -1;
+                    currentId = null;
                     return;
                 case Commands.EXIT:
                     terminateProgram();
                 default:
-                LOG.warn("Invalid command.");
+                    LOG.warn("Invalid command.");
                     break;
             }
-
-            listMenu();
+            listMenu(currentId);
         }
     }
 
-    private void createAccount() {
-        adminService.createAccount(0);
+    private String login() {
+        String id = null;
+        String loginMessage = "\nPlease enter a user ID to login, or type exit to terminate the application.\n->";
+
+        LOG.info(loginMessage);
+
+        while (terminalnput.hasNext() && id == null) {
+            command = terminalnput.nextLine();
+            LOG.info("You have entered: {}", command);
+
+            if (Commands.EXIT.equals(command)) {
+                terminateProgram();
+            }
+            try {
+                Boolean isProfile = profileService.checkProfile(command);
+                if (isProfile == false) {
+                    LOG.warn("This is not a valid profile id, please try again.");
+                    LOG.info("->");
+                } else {
+                    id = command;
+                    if (profileService.getProfile(id).getIsAdmin()) {
+                        LOG.info("Welcome ADMIN");
+                    } else {
+                        LOG.info("Welcome, " + profileService.getProfile(id).getCustomer().getFirstName());
+                    }
+                    break;
+                }
+            } catch (ProfileNotFound e) {
+                LOG.warn("Profile not found.");
+                LOG.info(loginMessage);
+            } catch (InputMismatchException | NumberFormatException e) {
+                LOG.warn("Invalid value - Please enter a valid ID.");
+                LOG.info(loginMessage);
+            }
+        }
+        return id;
     }
 
-    private void deleteAccount() {
-        String message = "\nPlease enter the ID of the account you wish to delete or type exit to return.\n->";
-        Integer id = -1;
+    private void createProfile() {
+        String firstName = null;
+        String lastName = null;
+        String country = null;
+        String state = null;
+        String city = null;
+        Integer zipCode = null;
+        String street = null;
+
+        String message = "\nPlease enter the user's first name.\n->";
+        LOG.info(message);
+        if (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT) && firstName == null) {
+            firstName = command;
+        }
+
+        message = "\nPlease enter the user's last name.\n->";
+        LOG.info(message);
+        if (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT) && lastName == null) {
+            lastName = command;
+        }
+
+        message = "\nPlease enter the user's state. [2-letter abbreviation] \n->";
+        LOG.info(message);
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT) && state == null) {
+            if (command.length() == 2) {
+                state = command.toUpperCase();
+                break;
+            } else {
+                LOG.warn("Please enter a 2-letter abbrevation for the state.");
+            }
+            LOG.info(message);
+        }
+
+        message = "\nPlease enter the user's city.\n->";
+        LOG.info(message);
+        if (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT) && city == null) {
+            city = command;
+        }
+
+        message = "\nPlease enter the user's zip code.\n->";
+        LOG.info(message);
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
+                && zipCode == null) {
+            try {
+                zipCode = Integer.parseInt(command);
+                break;
+            } catch (InputMismatchException | NumberFormatException e) {
+                LOG.warn("Invalid value - Please enter a valid number.");
+            }
+            LOG.info(message);
+        }
+
+        message = "\nPlease enter the user's street name.\n->";
+        LOG.info(message);
+        if (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT) && street == null) {
+            street = command;
+        }
+
+        Address address = new Address(street, state, city, country, zipCode);
+        adminService.createProfile(firstName, lastName, address);
+
+        LOG.info("Profile for {} {} has been created", firstName, lastName);
+    }
+
+    private void deleteProfile() {
+        String message = "\nPlease enter the ID of the profile you wish to delete or type exit to return.\n->";
+        String id = null;
 
         LOG.info(message);
         while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)) {
             try {
-                id = Integer.parseInt(command);
-                if (id == 0) {
-                    LOG.warn("You can not delete this account.");
-                } else if (id > 0) {
-                    adminService.deleteAccount(id);
+                id = command;
+                if (profileService.checkProfile(id)) {
+                    adminService.deleteProfile(id);
                     return;
                 } else {
                     LOG.warn("Invalid value - Please enter a value greater than 0.");
                 }
-            } catch (AccountNotFound e) {
-                LOG.warn("Could not find account number: " + id);
+            } catch (ProfileNotFound e) {
+                LOG.warn("Could not find profile ID: {}", id);
             } catch (InputMismatchException | NumberFormatException e) {
                 LOG.warn("Invalid value - Please enter a valid integer.");
             }
@@ -136,102 +251,241 @@ public class TellerTerminalRunner implements ApplicationRunner {
         }
     }
 
-    private void login() {
-        accountId = -1;
+    private void createAccount() {
+        String id = null;
+        String accountName = null;
+        String accountType = null;
+        Integer balance = null;
 
-        String loginMessage = "\nAre you an admin or a user?\n->";
-
-        LOG.info(loginMessage);
-        outerloop: while (terminalnput.hasNext() && accountId == -1) {
-            command = terminalnput.nextLine();
-            switch (command) {
-                case Commands.ADMIN:
-                    accountId = 0;
-                    return;
-                case Commands.USER:
-                    break outerloop;
-                case Commands.EXIT:
-                    terminateProgram();
-                default:
-                    LOG.warn("Invalid command.");
-                    break;
-            }
-            LOG.info(loginMessage);
-        }
-
-        LOG.info("" + accountId);
-
-        loginMessage = "\nPlease enter a user ID to login, or type exit to terminate the application.\n->";
-
-        LOG.info(loginMessage);
-
-        while (terminalnput.hasNext() && accountId == -1) {
-            command = terminalnput.nextLine();
-
-            if (Commands.EXIT.equals(command)) {
-                terminateProgram();
-            }
+        String message = "\nPlease enter the profile ID.\n->";
+        LOG.info(message);
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT) && id == null) {
             try {
-                accountId = Integer.parseInt(command);
-                Boolean isAccount = accountService.checkAccount(accountId);
-                if (isAccount == false) {
-                    accountId = -1;
-                    LOG.warn("This is not a valid account id, please try again.");
-                    LOG.info("->");
-                } else {
-                    LOG.info("Welcome, " + accountId);
+                if (profileService.checkProfile(command)) {
+                    id = command;
+                    LOG.info("Profile found.");
                     break;
                 }
+            } catch (ProfileNotFound e) {
+                LOG.warn("Profile {} not found", command);
+            }
+            LOG.info(message);
+        }
+
+        message = "\nPlease enter the account name.\n->";
+        LOG.info(message);
+        if (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
+                && accountName == null) {
+            accountName = command;
+        }
+
+        message = "\nPlease enter the account type.\n->";
+        LOG.info(message);
+        List<String> accountTypes = Arrays.asList(AccountTypes.CHECKING, AccountTypes.SAVINGS, AccountTypes.CERTIFICATE_OF_DEPOSIT, AccountTypes.MONEY_MARKET, AccountTypes.INDIVIDUAL_RETIREMENT_ACCOUNT);
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
+                && accountType == null) {
+            if(accountTypes.contains(command)){
+                accountType = command;
+                break;
+            } else {
+                LOG.warn("Incorrect account type.");
+            }
+            LOG.info(message);
+        }
+
+        message = "\nPlease enter the user's starting balance.\n->";
+        LOG.info(message);
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
+                && balance == null) {
+            try {
+                balance = Integer.parseInt(command);
+                break;
             } catch (InputMismatchException | NumberFormatException e) {
-                LOG.warn("Invalid value - Please enter a valid integer ID.");
-                LOG.info(loginMessage);
+                LOG.warn("Invalid value - Please enter a valid number.");
+            }
+            LOG.info(message);
+        }
+
+        try {
+            adminService.createAccount(id, accountName, accountType, balance);
+        } catch (ProfileNotFound e) {
+            LOG.warn("Profile {} not found", id);
+        }
+    }
+
+    private void deleteAccount() {
+        String id = null;
+        String accountName = null;
+
+        String message = "\nPlease enter the profile ID.\n->";
+        LOG.info(message);
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT) && id == null) {
+            id = command;
+            try {
+                if (profileService.checkProfile(id)) {
+                    LOG.info("Profile found.");
+                    break;
+                }
+            } catch (ProfileNotFound e) {
+                LOG.warn("Profile {} not found", id);
             }
         }
-    }
 
-    private void displayBalance() {
         try {
-            Integer balance = accountService.getBalance(accountId);
-            DecimalFormat df = new DecimalFormat("###,###,###");
-            LOG.info("Your current balance is: ${}.", df.format(balance));
+            LOG.info("{}'s available accounts: {}", id, profileService.getAccountsMap(id).keySet().toString());
+        } catch (ProfileNotFound e1) {
+            LOG.warn("Profile {} not found", id);
+        }
+
+        message = "\nPlease enter the name of the account you wish to delete.\n->";
+        LOG.info(message);
+        if (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
+                && accountName == null) {
+            accountName = command;
+        }
+
+        try {
+            adminService.deleteAccount(id, accountName);
+        } catch (ProfileNotFound e) {
+            LOG.warn("Profile {} not found", id);
         } catch (AccountNotFound e) {
-            LOG.warn("Could not find account number: " + accountId);
+            LOG.warn("Account {} not found", accountName);
         }
     }
 
-    private void deposit() {
-        LOG.info("\nPlease enter an amount you would like to deposit or type exit to return.\n->");
+    private void reportsByState() {
+        String state = null;
 
+        LOG.info("Please choose a state to filter profiles by.");
         if (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)) {
+            state = command;
+        }
+
+        adminService.printReportByState(state);
+    }
+
+    private void displayBalance(String currentId) {
+        String message = "\nPlease enter the account name you would like to check the balance of.\n Available accounts: {} \n->";
+        String accountName = null;
+        Map<String, Account> accountsMap = null;
+
+        try {
+            accountsMap = profileService.getAccountsMap(currentId);
+        } catch (ProfileNotFound e) {
+            LOG.warn("No account found.");
+        }
+
+        LOG.info(message, accountsMap.keySet().toString());
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
+                && !accountsMap.keySet().contains(accountName)) {
             try {
+                accountName = command;
+                if (accountsMap.keySet().contains(accountName)) {
+                    Integer balance = profileService.getBalance(currentId, accountName);
+                    DecimalFormat df = new DecimalFormat("###,###,###");
+                    LOG.info("Your current balance is: ${}.", df.format(balance));
+                    break;
+                } else {
+                    LOG.warn("Account with name {} does not exist for current profile.");
+                }
+            } catch (ProfileNotFound e) {
+                LOG.warn("Could not find profile ID: {}", currentId);
+            } catch (AccountNotFound e) {
+                LOG.warn("Could not find account: {}", accountName);
+            }
+            LOG.info(message, accountsMap.keySet().toString());
+        }
+    }
+
+    private void deposit(String currentId) {
+        String message = "\nPlease enter the name of the account you would like to make a deposit to.\n Available accounts: {} \n->";
+        String accountName = null;
+        Map<String, Account> accountsMap = null;
+
+        try {
+            accountsMap = profileService.getAccountsMap(currentId);
+        } catch (ProfileNotFound e) {
+            LOG.warn("No account found.");
+        }
+
+        LOG.info(message, accountsMap.keySet().toString());
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
+                && !accountsMap.keySet().contains(accountName)) {
+            accountName = command;
+            if (accountsMap.keySet().contains(accountName)) {
+                break;
+            } else {
+                LOG.warn("Account with name {} does not exist for current profile.");
+            }
+            LOG.info(message, accountsMap.keySet().toString());
+        }
+
+        LOG.info("\nPlease enter an amount you would like to deposit or type exit to return.\n->");
+        try {
+            accountsMap = profileService.getAccountsMap(currentId);
+
+            if (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)) {
+                accountName = command;
+            }
+
+            if (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)) {
+
                 Integer depositAmount = Integer.parseInt(command);
                 if (depositAmount > 0) {
                     try {
-                        accountService.addBalance(accountId, depositAmount);
+                        profileService.addBalance(currentId, accountName, depositAmount);
                     } catch (UpdateException e) {
-                        LOG.error("Failed to withdraw $" + depositAmount);
+                        LOG.error("Failed to withdraw {}", depositAmount);
                     }
                     LOG.info("You have deposited {} dollars.", depositAmount);
-                    displayBalance();
+                    LOG.info("Current balance in {}: {}", accountName,
+                            profileService.getBalance(currentId, accountName));
                 } else {
                     LOG.warn("Invalid value - Please enter a value greater than 0.");
                 }
-            } catch (AccountNotFound e) {
-                LOG.warn("Could not find account number: " + accountId);
-            } catch (InputMismatchException | NumberFormatException e) {
-                LOG.warn("Invalid value - Please enter a valid integer.");
             }
+        } catch (ProfileNotFound e) {
+            LOG.warn("Could not find profile ID: {}", currentId);
+        } catch (AccountNotFound e) {
+            LOG.warn("Could not find account: {}", accountName);
+        } catch (InputMismatchException | NumberFormatException e) {
+            LOG.warn("Invalid value - Please enter a valid integer.");
         }
+
     }
 
-    private void withdraw() {
+    private void withdraw(String currentId) {
+        String message = "\nPlease enter the name of the account you would like to make a withdrawal from.\n Available accounts: {} \n->";
+        String accountName = null;
+        Map<String, Account> accountsMap = null;
+
         try {
-            if (accountService.getBalance(accountId) <= 0) {
+            accountsMap = profileService.getAccountsMap(currentId);
+        } catch (ProfileNotFound e) {
+            LOG.warn("No account found.");
+        }
+
+        LOG.info(message, accountsMap.keySet().toString());
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
+                && !accountsMap.keySet().contains(accountName)) {
+            accountName = command;
+            if (accountsMap.keySet().contains(accountName)) {
+                break;
+            } else {
+                LOG.warn("Account with name {} does not exist for current profile.", accountName);
+            }
+            LOG.info(message, accountsMap.keySet().toString());
+        }
+
+        try {
+            if (profileService.getBalance(currentId, accountName) <= 0) {
                 LOG.warn("Insufficient account balance to withdraw.");
                 return;
             }
+        } catch (ProfileNotFound e) {
+            LOG.warn("Could not find profile ID: ", currentId);
         } catch (AccountNotFound e) {
-            LOG.warn("Could not find account number: " + accountId);
+            LOG.warn("Could not find account: {}", accountName);
         }
 
         LOG.info("\nPlease enter an amount you would like to withdraw or type exit to return.\n->");
@@ -240,40 +494,48 @@ public class TellerTerminalRunner implements ApplicationRunner {
             try {
                 Integer withdrawAmount = Integer.parseInt(command);
                 if (withdrawAmount > 0) {
-                    if (accountService.getBalance(accountId) >= withdrawAmount) {
+                    if (profileService.getBalance(currentId, accountName) >= withdrawAmount) {
                         try {
-                            accountService.subtractBalance(accountId, withdrawAmount);
+                            profileService.subtractBalance(currentId, accountName, withdrawAmount);
                         } catch (UpdateException e) {
-                            LOG.error("Failed to withdraw $" + withdrawAmount);
+                            LOG.error("Failed to withdraw {}", withdrawAmount);
                         }
-                        LOG.info("You have withdrawn {}} dollars.", withdrawAmount);
-                        displayBalance();
+                        LOG.info("You have withdrawn {} dollars.", withdrawAmount);
+                        displayBalance(currentId);
                     } else {
                         LOG.warn("Insufficient funds.");
                     }
                 } else {
                     LOG.warn("Invalid value - Please enter a value greater than 0.");
                 }
+            } catch (ProfileNotFound e) {
+                LOG.warn("Could not find profile ID: " + currentId);
             } catch (AccountNotFound e) {
-                LOG.warn("Could not find account number: " + accountId);
+                LOG.warn("Could not find account: {}", accountName);
             } catch (InputMismatchException | NumberFormatException e) {
                 LOG.warn("Invalid value - Please enter a valid integer.");
             }
         }
     }
 
-    private void listMenu() {
+    private void listMenu(String currentId) {
         LOG.info("\nPlease follow the list of commands:");
-        if (accountId == 0) { // admin commands
-            LOG.info("  create - to create a new account.");
-            LOG.info("  delete - to delete an existing account.");
+        try {
+            if (profileService.getProfile(currentId).getIsAdmin()) { // admin commands
+                LOG.info("  create profile - to create a new profile.");
+                LOG.info("  delete profile - to delete an existing profile.");
+                LOG.info("  create account - to create an account for an existing profile.");
+                LOG.info("  delete profile - to delete an account within an existing profile.");
+                LOG.info("  reports by state - display a list of profiles filtered by state");
+            } else { // user commands
+                LOG.info("  balance - to check an account's current balance.");
+                LOG.info("  deposit - to place money into an account.");
+                LOG.info("  withdraw - to take money out of an account.");
+            }
+        } catch (ProfileNotFound e) {
+            LOG.warn("Profile Not Found.");
         }
-        if (accountId >= 1) { // user commands
-            LOG.info("  balance - to check your current balance.");
-            LOG.info("  deposit - to place money into your account.");
-            LOG.info("  withdraw - to take money out of your account.");
-        }
-        LOG.info("  logout - to log out of the current account.");
+        LOG.info("  logout - to log out of the current profile.");
         LOG.info("  exit - to shut down your session.");
         LOG.info("->");
     }

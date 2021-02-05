@@ -2,9 +2,8 @@ package org.justinbaur.bankteller.configuration;
 
 import java.util.Scanner;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.justinbaur.bankteller.service.JsonFileHandler;
+import org.justinbaur.bankteller.service.UserProfileService;
+import org.justinbaur.bankteller.service.UserProfileServiceDatabaseImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -19,12 +18,7 @@ public class AppConfig {
     }
 
     @Bean
-    public ObjectMapper mapper() {
-        return new ObjectMapper();
-    }
-
-    @Bean
-    public JsonFileHandler handler() {
-        return new JsonFileHandler();
+    public UserProfileService profileService() {
+        return new UserProfileServiceDatabaseImpl();
     }
 }

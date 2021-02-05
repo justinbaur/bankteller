@@ -1,64 +1,27 @@
 package org.justinbaur.bankteller.domain;
 
-import java.util.Date;
-
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
-@Document(collection = "accounts")
 public class Account {
 
-    @Id
-    private Integer id;
-    private Integer balance;
-    private Date accountCreated;
+    private String accountName;
     private String accountType;
-
-    private String firstName;
-    private String lastName;
-    private Address address;
+    private Integer balance;
 
     public Account() {
+
     }
 
-    public Account(Integer id, Integer balance) {
-        this.id = id;
-        this.balance = balance;
-    }
-
-    public Account(Integer id, Integer balance, Date accountCreated, String accountType, String firstName,
-            String lastName, Address address) {
-        this.id = id;
-        this.balance = balance;
-        this.accountCreated = accountCreated;
+    public Account(String accountName, String accountType, Integer balance) {
+        this.accountName = accountName;
         this.accountType = accountType;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.address = address;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public Integer getBalance() {
-        return balance;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public void setBalance(Integer balance) {
         this.balance = balance;
     }
 
-    public Date getAccountCreated() {
-        return accountCreated;
+    public String getAccountName() {
+        return accountName;
     }
 
-    public void setAccountCreated(Date accountCreated) {
-        this.accountCreated = accountCreated;
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
     }
 
     public String getAccountType() {
@@ -69,34 +32,17 @@ public class Account {
         this.accountType = accountType;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public Integer getBalance() {
+        return balance;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public Address getAddress() {
-        return address;
-    }
-
-    public void setAddress(Address address) {
-        this.address = address;
+    public void setBalance(Integer balance) {
+        this.balance = balance;
     }
 
     @Override
     public String toString() {
-        return "Account [accountCreated=" + accountCreated + ", accountType=" + accountType + ", address=" + address
-                + ", balance=" + balance + ", firstName=" + firstName + ", id=" + id + ", lastName=" + lastName + "]";
+        return "Account [accountName=" + accountName + ", accountType=" + accountType + ", balance=" + balance + "]";
     }
 
 }
