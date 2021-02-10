@@ -1,5 +1,8 @@
 package org.justinbaur.bankteller.domain;
 
+/**
+ * Address POJO. Each customer has address information defining their location.
+ */
 public class Address {
     private String street;
     private String state;
@@ -7,8 +10,8 @@ public class Address {
     private String country;
     private Integer zipCode;
 
-    public Address(){
-        
+    public Address() {
+
     }
 
     public Address(String street, String state, String city, String country, Integer zipCode) {
@@ -65,5 +68,4 @@ public class Address {
                 + ", zipCode=" + zipCode + "]";
     }
 
-    
 }

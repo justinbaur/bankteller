@@ -2,6 +2,9 @@ package org.justinbaur.bankteller.domain;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
+/**
+ * CustomerInfo POJO. Names and addresses.
+ */
 @Document(collection = "accounts")
 public class CustomerInfo {
 

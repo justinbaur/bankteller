@@ -15,8 +15,9 @@ import org.springframework.stereotype.Component;
 import org.justinbaur.bankteller.domain.Account;
 import org.justinbaur.bankteller.domain.Address;
 import org.justinbaur.bankteller.exceptions.AccountNotFound;
+import org.justinbaur.bankteller.exceptions.InsufficientBalance;
+import org.justinbaur.bankteller.exceptions.NoExistingAccounts;
 import org.justinbaur.bankteller.exceptions.ProfileNotFound;
-import org.justinbaur.bankteller.exceptions.UpdateException;
 import org.justinbaur.bankteller.service.UserProfileService;
 import org.justinbaur.bankteller.service.AdminService;
 import org.justinbaur.bankteller.service.Time;
@@ -52,6 +53,10 @@ public class TellerTerminalRunner implements ApplicationRunner {
         activateTerminalSession();
     }
 
+    /**
+     * Base loop of the console. Requires users to login before accessing any other
+     * part of the program.
+     */
     public void activateTerminalSession() {
         LOG.info(welcomeMessage);
 
@@ -64,6 +69,12 @@ public class TellerTerminalRunner implements ApplicationRunner {
         }
     }
 
+    /**
+     * Represents the 'main menu' screen of the console after logging in, and
+     * displays relevant console commands.
+     * 
+     * @param currentId current logged-in profile ID
+     */
     private void activeProfileSession(String currentId) {
         listMenu(currentId);
 
@@ -126,6 +137,12 @@ public class TellerTerminalRunner implements ApplicationRunner {
         }
     }
 
+    /**
+     * Log into an existing account via profile ID. Asks for profile ID via console
+     * input.
+     * 
+     * @return profile ID of logged-in user
+     */
     private String login() {
         String id = null;
         String loginMessage = "\nPlease enter a user ID to login, or type exit to terminate the application.\n->";
@@ -164,6 +181,10 @@ public class TellerTerminalRunner implements ApplicationRunner {
         return id;
     }
 
+    /**
+     * Admin-level method to create a new user profile in the database. Asks for
+     * name and address via console input.
+     */
     private void createProfile() {
         String firstName = null;
         String lastName = null;
@@ -228,6 +249,10 @@ public class TellerTerminalRunner implements ApplicationRunner {
         LOG.info("Profile for {} {} has been created", firstName, lastName);
     }
 
+    /**
+     * Admin-level method to delete an existing profile from the database. Asks for
+     * profile ID via console input. Use with caution.
+     */
     private void deleteProfile() {
         String message = "\nPlease enter the ID of the profile you wish to delete or type exit to return.\n->";
         String id = null;
@@ -251,6 +276,10 @@ public class TellerTerminalRunner implements ApplicationRunner {
         }
     }
 
+    /**
+     * Admin-level method to create a new account for a specific profile. Asks for
+     * profile ID and desired account name and type via console input.
+     */
     private void createAccount() {
         String id = null;
         String accountName = null;
@@ -281,10 +310,12 @@ public class TellerTerminalRunner implements ApplicationRunner {
 
         message = "\nPlease enter the account type.\n->";
         LOG.info(message);
-        List<String> accountTypes = Arrays.asList(AccountTypes.CHECKING, AccountTypes.SAVINGS, AccountTypes.CERTIFICATE_OF_DEPOSIT, AccountTypes.MONEY_MARKET, AccountTypes.INDIVIDUAL_RETIREMENT_ACCOUNT);
+        List<String> accountTypes = Arrays.asList(AccountTypes.CHECKING, AccountTypes.SAVINGS,
+                AccountTypes.CERTIFICATE_OF_DEPOSIT, AccountTypes.MONEY_MARKET,
+                AccountTypes.INDIVIDUAL_RETIREMENT_ACCOUNT);
         while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
                 && accountType == null) {
-            if(accountTypes.contains(command)){
+            if (accountTypes.contains(command)) {
                 accountType = command;
                 break;
             } else {
@@ -313,6 +344,10 @@ public class TellerTerminalRunner implements ApplicationRunner {
         }
     }
 
+    /**
+     * Admin-level method to delete an account for a specific profile. Asks for
+     * profile ID and account name via console input. Use with caution.
+     */
     private void deleteAccount() {
         String id = null;
         String accountName = null;
@@ -331,11 +366,7 @@ public class TellerTerminalRunner implements ApplicationRunner {
             }
         }
 
-        try {
-            LOG.info("{}'s available accounts: {}", id, profileService.getAccountsMap(id).keySet().toString());
-        } catch (ProfileNotFound e1) {
-            LOG.warn("Profile {} not found", id);
-        }
+        LOG.info("{}'s available accounts: {}", id, getAccountsMap(id).keySet().toString());
 
         message = "\nPlease enter the name of the account you wish to delete.\n->";
         LOG.info(message);
@@ -353,6 +384,10 @@ public class TellerTerminalRunner implements ApplicationRunner {
         }
     }
 
+    /**
+     * Admin-level example method of querying database profiles and returning those
+     * matching a given state. Asks for state name via console input.
+     */
     private void reportsByState() {
         String state = null;
 
@@ -364,16 +399,16 @@ public class TellerTerminalRunner implements ApplicationRunner {
         adminService.printReportByState(state);
     }
 
+    /**
+     * User-level method to display the balance of one of their (logged-in user's)
+     * chosen bank accounts. Asks for account name via console input.
+     * 
+     * @param currentId current logged-in profile ID
+     */
     private void displayBalance(String currentId) {
         String message = "\nPlease enter the account name you would like to check the balance of.\n Available accounts: {} \n->";
         String accountName = null;
-        Map<String, Account> accountsMap = null;
-
-        try {
-            accountsMap = profileService.getAccountsMap(currentId);
-        } catch (ProfileNotFound e) {
-            LOG.warn("No account found.");
-        }
+        Map<String, Account> accountsMap = getAccountsMap(currentId);
 
         LOG.info(message, accountsMap.keySet().toString());
         while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
@@ -397,73 +432,17 @@ public class TellerTerminalRunner implements ApplicationRunner {
         }
     }
 
+    /**
+     * User-level method to deposit money into one of their (logged-in user's)
+     * chosen bank accounts. Asks for account name and deposit amount via console
+     * input.
+     * 
+     * @param currentId current logged-in profile ID
+     */
     private void deposit(String currentId) {
         String message = "\nPlease enter the name of the account you would like to make a deposit to.\n Available accounts: {} \n->";
         String accountName = null;
-        Map<String, Account> accountsMap = null;
-
-        try {
-            accountsMap = profileService.getAccountsMap(currentId);
-        } catch (ProfileNotFound e) {
-            LOG.warn("No account found.");
-        }
-
-        LOG.info(message, accountsMap.keySet().toString());
-        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
-                && !accountsMap.keySet().contains(accountName)) {
-            accountName = command;
-            if (accountsMap.keySet().contains(accountName)) {
-                break;
-            } else {
-                LOG.warn("Account with name {} does not exist for current profile.");
-            }
-            LOG.info(message, accountsMap.keySet().toString());
-        }
-
-        LOG.info("\nPlease enter an amount you would like to deposit or type exit to return.\n->");
-        try {
-            accountsMap = profileService.getAccountsMap(currentId);
-
-            if (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)) {
-                accountName = command;
-            }
-
-            if (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)) {
-
-                Integer depositAmount = Integer.parseInt(command);
-                if (depositAmount > 0) {
-                    try {
-                        profileService.addBalance(currentId, accountName, depositAmount);
-                    } catch (UpdateException e) {
-                        LOG.error("Failed to withdraw {}", depositAmount);
-                    }
-                    LOG.info("You have deposited {} dollars.", depositAmount);
-                    LOG.info("Current balance in {}: {}", accountName,
-                            profileService.getBalance(currentId, accountName));
-                } else {
-                    LOG.warn("Invalid value - Please enter a value greater than 0.");
-                }
-            }
-        } catch (ProfileNotFound e) {
-            LOG.warn("Could not find profile ID: {}", currentId);
-        } catch (AccountNotFound e) {
-            LOG.warn("Could not find account: {}", accountName);
-        } catch (InputMismatchException | NumberFormatException e) {
-            LOG.warn("Invalid value - Please enter a valid integer.");
-        }
-
-    }
-
-    private void withdraw(String currentId) {
-        String message = "\nPlease enter the name of the account you would like to make a withdrawal from.\n Available accounts: {} \n->";
-        String accountName = null;
-        Map<String, Account> accountsMap = null;
-
-        try {
-            accountsMap = profileService.getAccountsMap(currentId);
-        } catch (ProfileNotFound e) {
-            LOG.warn("No account found.");
-        }
+        Map<String, Account> accountsMap = getAccountsMap(currentId);
 
         LOG.info(message, accountsMap.keySet().toString());
         while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
@@ -477,34 +456,65 @@ public class TellerTerminalRunner implements ApplicationRunner {
             LOG.info(message, accountsMap.keySet().toString());
         }
 
-        try {
-            if (profileService.getBalance(currentId, accountName) <= 0) {
-                LOG.warn("Insufficient account balance to withdraw.");
-                return;
+        message = "\nPlease enter an amount you would like to deposit or type exit to return.\n->";
+        LOG.info(message);
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)) {
+            try {
+                Integer depositAmount = Integer.parseInt(command);
+                if (depositAmount > 0) {
+                    profileService.addBalance(currentId, accountName, depositAmount);
+                    LOG.info("You have deposited {} dollars.", depositAmount);
+                    LOG.info("Current balance in {}: {}", accountName,
+                            profileService.getBalance(currentId, accountName));
+                } else {
+                    LOG.warn("Invalid value - Please enter a value greater than 0.");
+                }
+            } catch (ProfileNotFound e) {
+                LOG.warn("Could not find profile ID: {}", currentId);
+            } catch (AccountNotFound e) {
+                LOG.warn("Could not find account: {}", accountName);
+            } catch (InputMismatchException | NumberFormatException e) {
+                LOG.warn("Invalid value - Please enter a valid integer.");
             }
-        } catch (ProfileNotFound e) {
-            LOG.warn("Could not find profile ID: ", currentId);
-        } catch (AccountNotFound e) {
-            LOG.warn("Could not find account: {}", accountName);
+            LOG.info(message);
         }
 
-        LOG.info("\nPlease enter an amount you would like to withdraw or type exit to return.\n->");
+    }
 
-        if (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)) {
+    /**
+     * User-level method to withdraw money from one of their (logged-in user's)
+     * chosen bank accounts. Asks for account name and withdraw amount via console
+     * input.
+     * 
+     * @param currentId current logged-in profile ID
+     */
+    private void withdraw(String currentId) {
+        String message = "\nPlease enter the name of the account you would like to make a withdrawal from.\n Available accounts: {} \n->";
+        String accountName = null;
+        Map<String, Account> accountsMap = getAccountsMap(currentId);
+
+        LOG.info(message, accountsMap.keySet().toString());
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
+                && !accountsMap.keySet().contains(accountName)) {
+            accountName = command;
+            if (accountsMap.keySet().contains(accountName)) {
+                break;
+            } else {
+                LOG.warn("Account with name {} does not exist for current profile.", accountName);
+            }
+            LOG.info(message, accountsMap.keySet().toString());
+        }
+
+        message = "\nPlease enter an amount you would like to withdraw or type exit to return.\n->";
+        LOG.info(message);
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)) {
             try {
                 Integer withdrawAmount = Integer.parseInt(command);
                 if (withdrawAmount > 0) {
-                    if (profileService.getBalance(currentId, accountName) >= withdrawAmount) {
-                        try {
-                            profileService.subtractBalance(currentId, accountName, withdrawAmount);
-                        } catch (UpdateException e) {
-                            LOG.error("Failed to withdraw {}", withdrawAmount);
-                        }
-                        LOG.info("You have withdrawn {} dollars.", withdrawAmount);
-                        displayBalance(currentId);
-                    } else {
-                        LOG.warn("Insufficient funds.");
-                    }
+                    profileService.subtractBalance(currentId, accountName, withdrawAmount);
+                    LOG.info("You have withdrawn {} dollars.", withdrawAmount);
+                    LOG.info("Current balance in {}: {}", accountName,
+                            profileService.getBalance(currentId, accountName));
                 } else {
                     LOG.warn("Invalid value - Please enter a value greater than 0.");
                 }
@@ -512,22 +522,52 @@ public class TellerTerminalRunner implements ApplicationRunner {
                 LOG.warn("Could not find profile ID: " + currentId);
             } catch (AccountNotFound e) {
                 LOG.warn("Could not find account: {}", accountName);
+            } catch (InsufficientBalance e) {
+                LOG.warn("Insufficient balance to make withdrawal.");
             } catch (InputMismatchException | NumberFormatException e) {
                 LOG.warn("Invalid value - Please enter a valid integer.");
             }
+            LOG.info(message);
         }
     }
 
+    /**
+     * Retrieve the map of account names and matching Accounts, useful for checking
+     * if accounts exist and pulling information from an Account by specifying an
+     * account name.
+     * 
+     * @param currentId current logged-in profile ID
+     * @return a Map of String account names and matching Accounts
+     */
+    private Map<String, Account> getAccountsMap(String currentId) {
+        Map<String, Account> accountsMap = null;
+        try {
+            accountsMap = profileService.getAccountsMap(currentId);
+        } catch (ProfileNotFound e) {
+            LOG.warn("Could not find profile ID: " + currentId);
+        } catch (NoExistingAccounts e) {
+            LOG.warn("This profile has no existing accounts.");
+        }
+        return accountsMap;
+    }
+
+    /**
+     * Displays a list of console commands and their descriptions, for either user
+     * or admin. Uses current profile ID to determine if the current user is a
+     * normal user or an admin.
+     * 
+     * @param currentId current logged-in profile ID
+     */
     private void listMenu(String currentId) {
         LOG.info("\nPlease follow the list of commands:");
         try {
-            if (profileService.getProfile(currentId).getIsAdmin()) { // admin commands
+            if (profileService.getProfile(currentId).getIsAdmin()) {
                 LOG.info("  create profile - to create a new profile.");
                 LOG.info("  delete profile - to delete an existing profile.");
                 LOG.info("  create account - to create an account for an existing profile.");
                 LOG.info("  delete profile - to delete an account within an existing profile.");
                 LOG.info("  reports by state - display a list of profiles filtered by state");
-            } else { // user commands
+            } else {
                 LOG.info("  balance - to check an account's current balance.");
                 LOG.info("  deposit - to place money into an account.");
                 LOG.info("  withdraw - to take money out of an account.");
@@ -540,6 +580,9 @@ public class TellerTerminalRunner implements ApplicationRunner {
         LOG.info("->");
     }
 
+    /**
+     * Exits the program.
+     */
     private void terminateProgram() {
         LOG.info("\nExiting the application...");
         System.exit(0);

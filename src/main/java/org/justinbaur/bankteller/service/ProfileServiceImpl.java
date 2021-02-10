@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.justinbaur.bankteller.domain.Account;
 import org.justinbaur.bankteller.domain.Profile;
+import org.justinbaur.bankteller.exceptions.NoExistingAccounts;
 import org.justinbaur.bankteller.exceptions.ProfileNotFound;
 import org.justinbaur.bankteller.repository.ProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,6 @@ public class ProfileServiceImpl implements ProfileService {
         if (repository.existsById(profileId)) {
             return true;
         } else {
-            System.out.println("Nothing here.. " + profileId);
             throw new ProfileNotFound("No profile found.");
         }
     }
@@ -38,11 +38,14 @@ public class ProfileServiceImpl implements ProfileService {
         }
     }
 
-    public Map<String, Account> getAccountsMap(String profileId) throws ProfileNotFound {
+    public Map<String, Account> getAccountsMap(String profileId) throws ProfileNotFound, NoExistingAccounts {
         Map<String, Account> accountsMap = new HashMap<String, Account>();
         List<Account> accounts = getProfile(profileId).getAccounts();
         for (Account account : accounts) {
-            accountsMap.put(account.getAccountType(), account);
+            accountsMap.put(account.getAccountName(), account);
+        }
+        if(accountsMap.isEmpty()){
+            throw new NoExistingAccounts("This profile has no existing accounts.");
         }
         return accountsMap;
     }

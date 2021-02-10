@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.justinbaur.bankteller.domain.Account;
 import org.justinbaur.bankteller.exceptions.ProfileNotFound;
-import org.justinbaur.bankteller.exceptions.UpdateException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -17,11 +16,6 @@ import org.slf4j.LoggerFactory;
 class AccountServiceTests {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AccountServiceTests.class);
-
-	@Test
-	void theTest(){
-		LOG.info("" + (int)(Math.random() * 10000));
-	}
 
 	/* 
 	

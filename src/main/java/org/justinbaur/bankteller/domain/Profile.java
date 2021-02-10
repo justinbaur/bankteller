@@ -9,6 +9,10 @@ import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+/**
+ * Profile POJO. Defines all data about a user including their personal
+ * information and account information.
+ */
 @Document(collection = "accounts")
 public class Profile {
 
@@ -31,14 +35,6 @@ public class Profile {
         this.accountCreated = accountCreated;
         this.customer = customer;
         this.accounts = accounts;
-    }
-
-
-
-    @Override
-    public String toString() {
-        return "Profile [accountCreated=" + accountCreated + ", accounts=" + accounts + ", customer=" + customer
-                + ", id=" + id + ", isAdmin=" + isAdmin + "]";
     }
 
     public String getId() {
@@ -79,6 +75,22 @@ public class Profile {
 
     public void setAccounts(List<Account> accounts) {
         this.accounts = accounts;
+    }
+
+    public Account getAccount(String accountName) {
+        Account account = null;
+        for (Account acct : getAccounts()) {
+            if (acct.getAccountName().equals(accountName)) {
+                account = acct;
+            }
+        }
+        return account;
+    }
+
+    @Override
+    public String toString() {
+        return "Profile [accountCreated=" + accountCreated + ", accounts=" + accounts + ", customer=" + customer
+                + ", id=" + id + ", isAdmin=" + isAdmin + "]";
     }
 
 }

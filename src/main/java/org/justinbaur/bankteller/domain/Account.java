@@ -1,5 +1,8 @@
 package org.justinbaur.bankteller.domain;
 
+/**
+ * Account POJO. Accounts are part of the profile and hold a balance.
+ */
 public class Account {
 
     private String accountName;

@@ -1,5 +1,8 @@
 package org.justinbaur.bankteller.exceptions;
 
+/**
+ * Thrown to indicate that the specific account was not found.
+ */
 public class AccountNotFound extends Exception {
 
     private static final long serialVersionUID = 1L;
