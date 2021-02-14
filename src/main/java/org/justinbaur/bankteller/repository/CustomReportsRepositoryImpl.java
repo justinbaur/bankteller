@@ -19,7 +19,6 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.justinbaur.bankteller.domain.Profile;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -29,8 +28,6 @@ public class CustomReportsRepositoryImpl implements CustomReportsRepository {
 
     MongoDatabase mongoDB;
     MongoCollection<Profile> accountsCollection;
-
-    Query query = new Query();
 
     public CustomReportsRepositoryImpl(@Value("${mongodb.username}") String username,
             @Value("${mongodb.password}") String password) {

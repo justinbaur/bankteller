@@ -20,17 +20,12 @@ public class UserProfileServiceDatabaseImpl extends ProfileServiceImpl implement
         Profile profile = getProfile(profileId);
         Account account = null;
 
-        if (profile != null) {
-            account = profile.getAccount(accountName);
-            if (account != null) {
-                return account.getBalance();
-            } else {
-                throw new AccountNotFound("No account found.");
-            }
+        account = profile.getAccount(accountName);
+        if (account != null) {
+            return account.getBalance();
         } else {
-            throw new ProfileNotFound("No profile found.");
+            throw new AccountNotFound("No account found.");
         }
-
     }
 
     @Override
@@ -39,18 +34,13 @@ public class UserProfileServiceDatabaseImpl extends ProfileServiceImpl implement
         Profile profile = getProfile(profileId);
         Account account = null;
 
-        if (profile != null) {
-            account = profile.getAccount(accountName);
-            if (account != null) {
-                profile.getAccount(accountName).setBalance(getBalance(profileId, accountName) + addAmount);
-                repository.save(profile);
-            } else {
-                throw new AccountNotFound("No account found.");
-            }
+        account = profile.getAccount(accountName);
+        if (account != null) {
+            profile.getAccount(accountName).setBalance(getBalance(profileId, accountName) + addAmount);
+            repository.save(profile);
         } else {
-            throw new ProfileNotFound("No profile found.");
+            throw new AccountNotFound("No account found.");
         }
-
     }
 
     @Override

@@ -285,6 +285,7 @@ public class TellerTerminalRunner implements ApplicationRunner {
         String accountName = null;
         String accountType = null;
         Integer balance = null;
+        
 
         String message = "\nPlease enter the profile ID.\n->";
         LOG.info(message);
@@ -301,11 +302,19 @@ public class TellerTerminalRunner implements ApplicationRunner {
             LOG.info(message);
         }
 
+        Map<String, Account> accountsMap = getAccountsMap(id);
+
         message = "\nPlease enter the account name.\n->";
         LOG.info(message);
-        if (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
+        while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
                 && accountName == null) {
-            accountName = command;
+            if(accountsMap == null || !accountsMap.containsKey(command)){
+                accountName = command;
+                break;
+            } else {
+                LOG.warn("You can not have two accounts with the same name. Please enter a unique name for the account.");
+            }
+            LOG.info(message);
         }
 
         message = "\nPlease enter the account type.\n->";

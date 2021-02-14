@@ -28,10 +28,15 @@ public class AdminServiceDatabaseImpl extends ProfileServiceImpl implements Admi
     public void createProfile(String firstName, String lastName, Address address) {
 
         String id = firstName + lastName;
+        Integer idNum = 0;
+        String tempId = null;
 
         do {
-            id += (int) (Math.random() * 10000);
-        } while (repository.existsById(id));
+            idNum = (int) (Math.random() * 10000);
+            tempId = id + idNum;
+        } while (repository.existsById(tempId));
+
+        id = tempId;
 
         Date accountCreated = new java.util.Date();
         CustomerInfo customer = new CustomerInfo(firstName, lastName, address);
