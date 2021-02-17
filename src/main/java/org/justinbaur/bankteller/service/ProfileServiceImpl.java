@@ -10,14 +10,14 @@ import org.justinbaur.bankteller.domain.Profile;
 import org.justinbaur.bankteller.exceptions.NoExistingAccounts;
 import org.justinbaur.bankteller.exceptions.ProfileNotFound;
 import org.justinbaur.bankteller.repository.ProfileRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-@Component
 public class ProfileServiceImpl implements ProfileService {
 
-    @Autowired
     ProfileRepository repository;
+
+    public ProfileServiceImpl(ProfileRepository repository){
+        this.repository = repository;
+    }
 
     @Override
     public Boolean checkProfile(String profileId) throws ProfileNotFound {

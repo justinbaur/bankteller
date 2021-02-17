@@ -21,8 +21,11 @@ public class AdminServiceDatabaseImpl extends ProfileServiceImpl implements Admi
 
     private static final Logger LOG = LoggerFactory.getLogger(AdminServiceDatabaseImpl.class);
 
-    @Autowired
     ProfileRepository repository;
+
+    public AdminServiceDatabaseImpl(@Autowired ProfileRepository repository) {
+        super(repository);
+    }
 
     @Override
     public void createProfile(String firstName, String lastName, Address address) {

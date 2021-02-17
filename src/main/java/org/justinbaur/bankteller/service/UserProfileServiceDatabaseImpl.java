@@ -12,8 +12,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserProfileServiceDatabaseImpl extends ProfileServiceImpl implements UserProfileService {
 
-    @Autowired
     ProfileRepository repository;
+
+    public UserProfileServiceDatabaseImpl(@Autowired ProfileRepository repository) {
+        super(repository);
+    }
 
     @Override
     public Integer getBalance(String profileId, String accountName) throws ProfileNotFound, AccountNotFound {
