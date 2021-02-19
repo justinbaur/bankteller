@@ -104,9 +104,23 @@ Working with real world ways to persist data.
 The account POJO has been beefied up so you will need to account for more user input from the admin console.
 
 ---
+### Feature 6: Rest API
+**Assignment**
 
-Future notes
-- XML to JSON and merge
+Expose the services in the Bankteller application that have been built thus far to support the Terminal.  This will enable the banking application to be exposed through REST controllers and consumed by a web application.  The REST application should be built around the Profile/Account objects so that they can be interacted with through HTTP from the database.
+
+[Map exceptions to their relevent HTTP status code](https://www.baeldung.com/spring-response-entity), for example `profile` not found in the database would throw a `404 not found`.  Research spring's ResponseEntity to build the approriate response with http code. 
+
+**Purpose**
+
+Consoles/Terminals are so 1970's and we need to bring this application into the present with a modern way to communicate with it and present the data.  Soon we will build a SPA (Single page application) to support this application through a browser/mobile device instead of a terminal.
+
+**Notes**
+
+- Leverage Spring's `RestController` annotations to build your REST service.  Do not use spring data rest or HATEOAS.
+- If you need to move logic from the terminal runner to any services or build a new service to support some business logic that was baked into the terminal class feel free.  We do not want to clutter up the controllers with too much logic.
+
+
 
 ---
 ## Object Oriented Design Patterns
