@@ -1,10 +1,10 @@
 package org.justinbaur.bankteller.runner;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.InputMismatchException;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +14,9 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import org.justinbaur.bankteller.domain.Account;
 import org.justinbaur.bankteller.domain.Address;
-import org.justinbaur.bankteller.exceptions.AccountNotFound;
-import org.justinbaur.bankteller.exceptions.InsufficientBalance;
-import org.justinbaur.bankteller.exceptions.NoExistingAccounts;
-import org.justinbaur.bankteller.exceptions.ProfileNotFound;
+import org.justinbaur.bankteller.exception.AccountNotFound;
+import org.justinbaur.bankteller.exception.InsufficientBalance;
+import org.justinbaur.bankteller.exception.ProfileNotFound;
 import org.justinbaur.bankteller.service.UserProfileService;
 import org.justinbaur.bankteller.service.AdminService;
 import org.justinbaur.bankteller.service.Time;
@@ -302,17 +301,19 @@ public class TellerTerminalRunner implements ApplicationRunner {
             LOG.info(message);
         }
 
-        Map<String, Account> accountsMap = getAccountsMap(id);
-
         message = "\nPlease enter the account name.\n->";
         LOG.info(message);
         while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
                 && accountName == null) {
-            if(accountsMap == null || !accountsMap.containsKey(command)){
-                accountName = command;
-                break;
-            } else {
-                LOG.warn("You can not have two accounts with the same name. Please enter a unique name for the account.");
+            try{
+                if(profileService.getAccounts(id) == null || !getAccountNames(id).contains(accountName)){
+                    accountName = command;
+                    break;
+                } else {
+                    LOG.warn("You can not have two accounts with the same name. Please enter a unique name for the account.");
+                }
+            } catch (ProfileNotFound e){
+                LOG.warn("Profile {} not found", command);
             }
             LOG.info(message);
         }
@@ -375,7 +376,7 @@ public class TellerTerminalRunner implements ApplicationRunner {
             }
         }
 
-        LOG.info("{}'s available accounts: {}", id, getAccountsMap(id).keySet().toString());
+        LOG.info("{}'s available accounts: {}", id, getAccountNames(id));
 
         message = "\nPlease enter the name of the account you wish to delete.\n->";
         LOG.info(message);
@@ -417,14 +418,13 @@ public class TellerTerminalRunner implements ApplicationRunner {
     private void displayBalance(String currentId) {
         String message = "\nPlease enter the account name you would like to check the balance of.\n Available accounts: {} \n->";
         String accountName = null;
-        Map<String, Account> accountsMap = getAccountsMap(currentId);
 
-        LOG.info(message, accountsMap.keySet().toString());
+        LOG.info(message, getAccountNames(currentId));
         while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
-                && !accountsMap.keySet().contains(accountName)) {
+                && !getAccountNames(currentId).contains(accountName)) {
             try {
                 accountName = command;
-                if (accountsMap.keySet().contains(accountName)) {
+                if (getAccountNames(currentId).contains(accountName)) {
                     Integer balance = profileService.getBalance(currentId, accountName);
                     DecimalFormat df = new DecimalFormat("###,###,###");
                     LOG.info("Your current balance is: ${}.", df.format(balance));
@@ -437,7 +437,7 @@ public class TellerTerminalRunner implements ApplicationRunner {
             } catch (AccountNotFound e) {
                 LOG.warn("Could not find account: {}", accountName);
             }
-            LOG.info(message, accountsMap.keySet().toString());
+            LOG.info(message, getAccountNames(currentId));
         }
     }
 
@@ -451,18 +451,17 @@ public class TellerTerminalRunner implements ApplicationRunner {
     private void deposit(String currentId) {
         String message = "\nPlease enter the name of the account you would like to make a deposit to.\n Available accounts: {} \n->";
         String accountName = null;
-        Map<String, Account> accountsMap = getAccountsMap(currentId);
 
-        LOG.info(message, accountsMap.keySet().toString());
+        LOG.info(message, getAccountNames(currentId));
         while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
-                && !accountsMap.keySet().contains(accountName)) {
+                && !getAccountNames(currentId).contains(accountName)) {
             accountName = command;
-            if (accountsMap.keySet().contains(accountName)) {
+            if (getAccountNames(currentId).contains(accountName)) {
                 break;
             } else {
                 LOG.warn("Account with name {} does not exist for current profile.", accountName);
             }
-            LOG.info(message, accountsMap.keySet().toString());
+            LOG.info(message, getAccountNames(currentId));
         }
 
         message = "\nPlease enter an amount you would like to deposit or type exit to return.\n->";
@@ -500,18 +499,17 @@ public class TellerTerminalRunner implements ApplicationRunner {
     private void withdraw(String currentId) {
         String message = "\nPlease enter the name of the account you would like to make a withdrawal from.\n Available accounts: {} \n->";
         String accountName = null;
-        Map<String, Account> accountsMap = getAccountsMap(currentId);
 
-        LOG.info(message, accountsMap.keySet().toString());
+        LOG.info(message, getAccountNames(currentId));
         while (terminalnput.hasNext() && !(command = terminalnput.nextLine()).equals(Commands.EXIT)
-                && !accountsMap.keySet().contains(accountName)) {
+                && !getAccountNames(currentId).contains(accountName)) {
             accountName = command;
-            if (accountsMap.keySet().contains(accountName)) {
+            if (getAccountNames(currentId).contains(accountName)) {
                 break;
             } else {
                 LOG.warn("Account with name {} does not exist for current profile.", accountName);
             }
-            LOG.info(message, accountsMap.keySet().toString());
+            LOG.info(message, getAccountNames(currentId));
         }
 
         message = "\nPlease enter an amount you would like to withdraw or type exit to return.\n->";
@@ -541,23 +539,24 @@ public class TellerTerminalRunner implements ApplicationRunner {
     }
 
     /**
-     * Retrieve the map of account names and matching Accounts, useful for checking
-     * if accounts exist and pulling information from an Account by specifying an
-     * account name.
+     * Get a List of String accountNames for a given Profile object matching String currentId.
      * 
-     * @param currentId current logged-in profile ID
-     * @return a Map of String account names and matching Accounts
+     * @param currentId the ID of the Profile to check the database for.
+     * @return List of Strings of account names for given Profile.
      */
-    private Map<String, Account> getAccountsMap(String currentId) {
-        Map<String, Account> accountsMap = null;
-        try {
-            accountsMap = profileService.getAccountsMap(currentId);
-        } catch (ProfileNotFound e) {
+    public List<String> getAccountNames(String currentId){
+        List<String> accountNames = new ArrayList<String>();
+        List<Account> accountList = new ArrayList<Account>();
+        try{
+            accountList = profileService.getAccounts(currentId);
+        } catch (ProfileNotFound e){
             LOG.warn("Could not find profile ID: " + currentId);
-        } catch (NoExistingAccounts e) {
-            LOG.warn("This profile has no existing accounts.");
         }
-        return accountsMap;
+        
+        for(Account acct : accountList){
+            accountNames.add(acct.getAccountName());
+        }
+        return accountNames;
     }
 
     /**

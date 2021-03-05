@@ -8,7 +8,7 @@ logging:
   level:
     org.mongodb: WARN
     org.springframework: INFO
-
+    org.justinbaur: DEBUG
 
 spring:
   data:

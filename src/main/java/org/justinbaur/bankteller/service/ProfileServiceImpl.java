@@ -1,14 +1,12 @@
 package org.justinbaur.bankteller.service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.justinbaur.bankteller.domain.Account;
 import org.justinbaur.bankteller.domain.Profile;
-import org.justinbaur.bankteller.exceptions.NoExistingAccounts;
-import org.justinbaur.bankteller.exceptions.ProfileNotFound;
+import org.justinbaur.bankteller.exception.AccountNotFound;
+import org.justinbaur.bankteller.exception.ProfileNotFound;
 import org.justinbaur.bankteller.repository.ProfileRepository;
 
 public class ProfileServiceImpl implements ProfileService {
@@ -21,32 +19,40 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public Boolean checkProfile(String profileId) throws ProfileNotFound {
+        Boolean profileExists = false;
         if (repository.existsById(profileId)) {
-            return true;
+            profileExists = true;
         } else {
             throw new ProfileNotFound("No profile found.");
         }
+        return profileExists;
     }
 
     @Override
     public Profile getProfile(String profileId) throws ProfileNotFound {
+        Profile profile = null;
         if (checkProfile(profileId)) {
-            Optional<Profile> profile = repository.findById(profileId);
-            return profile.get();
-        } else {
-            throw new ProfileNotFound("No profile found.");
+            Optional<Profile> foundProfile = repository.findById(profileId);
+            profile = foundProfile.get();
         }
+        return profile;
     }
 
-    public Map<String, Account> getAccountsMap(String profileId) throws ProfileNotFound, NoExistingAccounts {
-        Map<String, Account> accountsMap = new HashMap<String, Account>();
-        List<Account> accounts = getProfile(profileId).getAccounts();
-        for (Account account : accounts) {
-            accountsMap.put(account.getAccountName(), account);
-        }
-        if(accountsMap.isEmpty()){
-            throw new NoExistingAccounts("This profile has no existing accounts.");
-        }
-        return accountsMap;
+    @Override
+    public List<Profile> getProfiles() {
+        List<Profile> profileList = repository.findAll();
+        return profileList;
+    }
+
+    @Override
+    public Account getAccount(String profileId, String accountName) throws ProfileNotFound, AccountNotFound {
+        Profile profile = getProfile(profileId);
+        return profile.getAccount(accountName);
+    }
+
+    @Override
+    public List<Account> getAccounts(String profileId) throws ProfileNotFound {
+        Profile profile = getProfile(profileId);
+        return profile.getAccounts();
     }
 }

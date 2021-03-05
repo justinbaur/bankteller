@@ -2,9 +2,9 @@ package org.justinbaur.bankteller.service;
 
 import org.justinbaur.bankteller.domain.Account;
 import org.justinbaur.bankteller.domain.Profile;
-import org.justinbaur.bankteller.exceptions.AccountNotFound;
-import org.justinbaur.bankteller.exceptions.InsufficientBalance;
-import org.justinbaur.bankteller.exceptions.ProfileNotFound;
+import org.justinbaur.bankteller.exception.AccountNotFound;
+import org.justinbaur.bankteller.exception.InsufficientBalance;
+import org.justinbaur.bankteller.exception.ProfileNotFound;
 import org.justinbaur.bankteller.repository.ProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,6 +16,7 @@ public class UserProfileServiceDatabaseImpl extends ProfileServiceImpl implement
 
     public UserProfileServiceDatabaseImpl(@Autowired ProfileRepository repository) {
         super(repository);
+        this.repository = repository;
     }
 
     @Override
@@ -52,20 +53,16 @@ public class UserProfileServiceDatabaseImpl extends ProfileServiceImpl implement
         Profile profile = getProfile(profileId);
         Account account = null;
 
-        if (profile != null) {
-            account = profile.getAccount(accountName);
-            if (account != null) {
-                if (subtractAmount <= account.getBalance()) {
-                    profile.getAccount(accountName).setBalance(getBalance(profileId, accountName) - subtractAmount);
-                    repository.save(profile);
-                } else {
-                    throw new InsufficientBalance("Insufficient balance.");
-                }
+        account = profile.getAccount(accountName);
+        if (account != null) {
+            if (subtractAmount <= account.getBalance()) {
+                profile.getAccount(accountName).setBalance(getBalance(profileId, accountName) - subtractAmount);
+                repository.save(profile);
             } else {
-                throw new AccountNotFound("No account found.");
+                throw new InsufficientBalance("Insufficient balance.");
             }
         } else {
-            throw new ProfileNotFound("No profile found.");
+            throw new AccountNotFound("No account found.");
         }
 
     }

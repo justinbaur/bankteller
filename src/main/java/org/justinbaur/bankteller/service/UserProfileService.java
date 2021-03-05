@@ -1,8 +1,8 @@
 package org.justinbaur.bankteller.service;
 
-import org.justinbaur.bankteller.exceptions.AccountNotFound;
-import org.justinbaur.bankteller.exceptions.InsufficientBalance;
-import org.justinbaur.bankteller.exceptions.ProfileNotFound;
+import org.justinbaur.bankteller.exception.AccountNotFound;
+import org.justinbaur.bankteller.exception.InsufficientBalance;
+import org.justinbaur.bankteller.exception.ProfileNotFound;
 
 /**
  * Service interface representing underlying methods for actions for non-admin user accounts.

@@ -1,4 +1,4 @@
-package org.justinbaur.bankteller.exceptions;
+package org.justinbaur.bankteller.exception;
 
 /**
  * Thrown to indicate that the balance in an account was insufficient for the

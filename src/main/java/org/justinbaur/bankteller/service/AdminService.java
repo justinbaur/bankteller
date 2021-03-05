@@ -1,13 +1,22 @@
 package org.justinbaur.bankteller.service;
 
+import org.justinbaur.bankteller.domain.Account;
 import org.justinbaur.bankteller.domain.Address;
-import org.justinbaur.bankteller.exceptions.AccountNotFound;
-import org.justinbaur.bankteller.exceptions.ProfileNotFound;
+import org.justinbaur.bankteller.domain.Profile;
+import org.justinbaur.bankteller.exception.AccountNotFound;
+import org.justinbaur.bankteller.exception.ProfileNotFound;
 
 /**
  * Service interface representing underlying methods for actions for admin-level accounts.
  */
 public interface AdminService extends ProfileService {
+
+    /**
+     * Insert a new profile into the database with given personal information.
+     * 
+     * @param profile Profile object to be inserted into the database.
+     */
+    public void createProfile(Profile profile);
 
     /**
      * Insert a new profile into the database with given personal information.
@@ -19,6 +28,13 @@ public interface AdminService extends ProfileService {
     public void createProfile(String firstName, String lastName, Address address);
 
     /**
+     * Update a Profile in the database.
+     * 
+     * @param profile Profile object to be updated in the database.
+     */
+    public void updateProfile(Profile profile);
+
+    /**
      * Delete an existing profile from the database by specifying a String ID.
      * 
      * @param profileId String ID matching the profile to be deleted
@@ -26,6 +42,16 @@ public interface AdminService extends ProfileService {
      *                         exist in the database
      */
     public void deleteProfile(String profileId) throws ProfileNotFound;
+
+    /**
+     * Create a new account to hold money, for an existing profile in the database.
+     * 
+     * @param profileId   String ID matching the profile to create an account in
+     * @param account Account object to add to profile
+     * @throws ProfileNotFound throw this exception when the String ID does not
+     *                         exist in the database
+     */
+    public void createAccount(String profileId, Account account) throws ProfileNotFound;
 
     /**
      * Create a new account to hold money, for an existing profile in the database.

@@ -1,4 +1,4 @@
-package org.justinbaur.bankteller.exceptions;
+package org.justinbaur.bankteller.exception;
 
 /**
  * Thrown to indicate that the specific account was not found.

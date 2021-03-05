@@ -8,8 +8,8 @@ import org.justinbaur.bankteller.domain.Account;
 import org.justinbaur.bankteller.domain.Profile;
 import org.justinbaur.bankteller.domain.Address;
 import org.justinbaur.bankteller.domain.CustomerInfo;
-import org.justinbaur.bankteller.exceptions.AccountNotFound;
-import org.justinbaur.bankteller.exceptions.ProfileNotFound;
+import org.justinbaur.bankteller.exception.AccountNotFound;
+import org.justinbaur.bankteller.exception.ProfileNotFound;
 import org.justinbaur.bankteller.repository.ProfileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +25,13 @@ public class AdminServiceDatabaseImpl extends ProfileServiceImpl implements Admi
 
     public AdminServiceDatabaseImpl(@Autowired ProfileRepository repository) {
         super(repository);
+        this.repository = repository;
+    }
+
+    @Override
+    public void createProfile(Profile profile) {
+        LOG.debug("Inserting profile into repository..");
+        repository.insert(profile);
     }
 
     @Override
@@ -52,9 +59,24 @@ public class AdminServiceDatabaseImpl extends ProfileServiceImpl implements Admi
     }
 
     @Override
+    public void updateProfile(Profile profile) {
+        repository.save(profile);
+    }
+
+    @Override
     public void deleteProfile(String profileId) throws ProfileNotFound {
         Profile profile = getProfile(profileId);
         repository.delete(profile);
+    }
+
+    @Override
+    public void createAccount(String profileId, Account account)
+            throws ProfileNotFound {
+        Profile profile = getProfile(profileId);
+        List<Account> accountsList = profile.getAccounts();
+        accountsList.add(account);
+        profile.setAccounts(accountsList);
+        repository.save(profile);
     }
 
     @Override
