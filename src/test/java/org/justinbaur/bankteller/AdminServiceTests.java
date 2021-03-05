@@ -8,9 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.justinbaur.bankteller.domain.Account;
-import org.justinbaur.bankteller.exceptions.JsonWriteException;
-import org.justinbaur.bankteller.service.AdminServiceImpl;
-import org.justinbaur.bankteller.service.JsonFileHandler;
+import org.justinbaur.bankteller.repository.ProfileRepository;
+import org.justinbaur.bankteller.service.UserProfileServiceDatabaseImpl;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -20,13 +19,16 @@ import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
 public class AdminServiceTests {
-	private static final Logger LOG = LoggerFactory.getLogger(AdminServiceTests.class);
+
+	/*
+
+	private static final Logger LOG = LoggerFactory.getLogger(UserProfileServiceTests.class);
 
 	@Mock
-	JsonFileHandler handler;
+	ProfileRepository repository;
 
 	@InjectMocks
-	AdminServiceImpl service;
+	UserProfileServiceDatabaseImpl service;
 
 	Map<Integer, Account> testAccountMap = new HashMap<>();
 
@@ -76,5 +78,7 @@ public class AdminServiceTests {
         Integer idCheck = service.findAvailableAccountID(2, 10);
         Assertions.assertEquals(2, idCheck);
     }
+
+	*/
 }
 
