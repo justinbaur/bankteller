@@ -37,23 +37,12 @@ public class AdminServiceDatabaseImpl extends ProfileServiceImpl implements Admi
     @Override
     public void createProfile(String firstName, String lastName, Address address) {
 
-        String id = firstName + lastName;
-        Integer idNum = 0;
-        String tempId = null;
-
-        do {
-            idNum = (int) (Math.random() * 10000);
-            tempId = id + idNum;
-        } while (repository.existsById(tempId));
-
-        id = tempId;
-
         Date accountCreated = new java.util.Date();
         CustomerInfo customer = new CustomerInfo(firstName, lastName, address);
         List<Account> accounts = new ArrayList<Account>();
         Boolean isAdmin = false;
 
-        Profile profile = new Profile(id, isAdmin, accountCreated, customer, accounts);
+        Profile profile = new Profile(isAdmin, accountCreated, customer, accounts);
 
         repository.insert(profile);
     }
@@ -86,6 +75,24 @@ public class AdminServiceDatabaseImpl extends ProfileServiceImpl implements Admi
         Account account = new Account(accountName, accountType, balance);
         List<Account> accountsList = profile.getAccounts();
         accountsList.add(account);
+        profile.setAccounts(accountsList);
+        repository.save(profile);
+    }
+
+    @Override
+    public void updateAccount(String profileId, Account newAccount) throws ProfileNotFound, AccountNotFound {
+        Profile profile = getProfile(profileId);
+        List<Account> accountsList = profile.getAccounts();
+        for(Account account : accountsList){
+            if(account.getAccountName().equals(newAccount.getAccountName())){
+                accountsList.remove(account);
+                accountsList.add(newAccount);
+                LOG.info("Account {} successfully updated.", newAccount.getAccountName());
+                break;
+            } else {
+                throw new AccountNotFound("Account not found");
+            }
+        }
         profile.setAccounts(accountsList);
         repository.save(profile);
     }

@@ -3,6 +3,8 @@ package org.justinbaur.bankteller.domain;
 import java.util.Date;
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.springframework.data.annotation.Id;
@@ -22,14 +24,14 @@ public class Profile {
     private Boolean isAdmin;
     @BsonProperty(value = "accountCreated")
     private Date accountCreated;
+    @NotNull(message = "customer is missing")
     private CustomerInfo customer;
     private List<Account> accounts;
 
     public Profile() {
     }
 
-    public Profile(String id, Boolean isAdmin, Date accountCreated, CustomerInfo customer, List<Account> accounts) {
-        this.id = id;
+    public Profile(Boolean isAdmin, Date accountCreated, CustomerInfo customer, List<Account> accounts) {
         this.isAdmin = isAdmin;
         this.accountCreated = accountCreated;
         this.customer = customer;

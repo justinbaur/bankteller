@@ -1,12 +1,18 @@
 package org.justinbaur.bankteller.domain;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 /**
  * CustomerInfo POJO. Names and addresses.
  */
 public class CustomerInfo {
 
+    @NotBlank(message = "first name is missing")
     private String firstName;
+    @NotBlank(message = "last name is missing")
     private String lastName;
+    @NotNull(message = "account is missing")
     private Address address;
 
     public CustomerInfo() {

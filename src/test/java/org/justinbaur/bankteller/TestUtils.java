@@ -23,9 +23,9 @@ public class TestUtils {
 
     public static Map<String, Profile> getTestProfiles() {
         Map<String, Profile> testProfilesMap = new HashMap<>();
-        testProfilesMap.put("testProfile1", new Profile("testProfile1", true, new Date(2021, 2, 17), new CustomerInfo("Admin", "Profile", 
+        testProfilesMap.put("testProfile1", new Profile(true, new Date(2021, 2, 17), new CustomerInfo("Admin", "Profile", 
             new Address("Street", "ST", "City", "Country", 00000)), Collections.emptyList()));
-        testProfilesMap.put("testProfile2", new Profile("testProfile2", false, new Date(2021, 2, 18), new CustomerInfo("Test", "Profile", 
+        testProfilesMap.put("testProfile2", new Profile(false, new Date(2021, 2, 18), new CustomerInfo("Test", "Profile", 
             new Address("E Test St", "FL", "Jacksonville", "United States", 12345)), new ArrayList<Account>(getTestAccounts().values())));
         return testProfilesMap;
     } 
