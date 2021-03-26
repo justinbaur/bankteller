@@ -1,13 +1,22 @@
 package org.justinbaur.bankteller.domain;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
 /**
  * Address POJO. Each customer has address information defining their location.
  */
 public class Address {
+    @NotBlank(message = "street is missing")
     private String street;
+    @NotBlank(message = "state is missing")
+    @Size(min = 2, max = 2, message = "state must be 2 letters")
     private String state;
+    @NotBlank(message = "city is missing")
     private String city;
+    @NotBlank(message = "country is missing")
     private String country;
+    @NotBlank(message = "zip code is missing or invalid")
     private Integer zipCode;
 
     public Address() {

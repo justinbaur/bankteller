@@ -64,6 +64,5 @@ public class UserProfileServiceDatabaseImpl extends ProfileServiceImpl implement
         } else {
             throw new AccountNotFound("No account found.");
         }
-
     }
 }

@@ -68,6 +68,18 @@ public interface AdminService extends ProfileService {
             throws ProfileNotFound;
 
     /**
+     * Update an existing account for a profile in the database.
+     * 
+     * @param profileId String ID matching the profile to delete an account in
+     * @param account Account object to be updated.
+     * @throws ProfileNotFound throw this exception when the String ID does not
+     *                         exist in the database
+     * @throws AccountNotFound throw this exception when the Account object does
+     *                         not exist for the profile in the database
+     */
+    public void updateAccount(String profileId, Account account) throws ProfileNotFound, AccountNotFound;
+
+    /**
      * Delete an existing account for a profile in the database.
      * 
      * @param profileId   String ID matching the profile to delete an account in
