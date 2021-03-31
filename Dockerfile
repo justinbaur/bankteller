@@ -8,4 +8,4 @@ WORKDIR /tmp
 EXPOSE 10000
 RUN chmod 777 /tmp/bankteller.jar
 RUN ls -al
-CMD ["java", "-jar", "bankteller.jar"]
+CMD ["java", "-jar", "/tmp/bankteller.jar"]
