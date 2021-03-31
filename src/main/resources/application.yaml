@@ -10,6 +10,8 @@ logging:
     org.springframework: INFO
     org.justinbaur: DEBUG
 
+server:
+  port: 10000
 spring:
   data:
     mongodb:
